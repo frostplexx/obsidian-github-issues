@@ -1,13 +1,17 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-
+import {api_authenticate, api_get_repos} from "./API/ApiHandler";
+import {IssuesModal} from "./Modals/IssuesModal";
+import {Octokit} from "@octokit/core";
 // Remember to rename these classes and interfaces!
 
 interface MyPluginSettings {
-	mySetting: string;
+	username: string;
+	password: string
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+	username: '',
+	password: ''
 }
 
 export default class MyPlugin extends Plugin {
@@ -15,6 +19,8 @@ export default class MyPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+		const ocotokit = await api_authenticate(this.settings.password);
+
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
@@ -27,6 +33,19 @@ export default class MyPlugin extends Plugin {
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		const statusBarItemEl = this.addStatusBarItem();
 		statusBarItemEl.setText('Status Bar Text');
+
+
+		//add issues of repo command
+		this.addCommand({
+			id: 'embed-issues',
+			name: 'Embed Issues',
+			callback: () => {
+				new IssuesModal(this.app, {
+					octokit: ocotokit,
+					username: this.settings.username
+				} as OcotoBundle).open();
+			}
+		});
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -66,7 +85,7 @@ export default class MyPlugin extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new GithubIssuesSettings(this.app, this));
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
@@ -107,7 +126,7 @@ class SampleModal extends Modal {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
+class GithubIssuesSettings extends PluginSettingTab {
 	plugin: MyPlugin;
 
 	constructor(app: App, plugin: MyPlugin) {
@@ -120,18 +139,37 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
+		containerEl.createEl('h2', {text: 'Github Authentication'});
 
+		// username
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
+			.setName('Username')
+			.setDesc('Your Github Username or Email')
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
+				.setPlaceholder('John Doe')
+				.setValue(this.plugin.settings.username)
 				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
+					console.log('Username: ' + value);
+					this.plugin.settings.username = value;
 					await this.plugin.saveSettings();
 				}));
+
+		// password
+		new Setting(containerEl)
+			.setName("Personal Authentication Token")
+			.setDesc("Personal Authentication Token")
+			.addText(text => text
+				.setPlaceholder("XXXXXXXXXXXXXXX")
+				.setValue(this.plugin.settings.password)
+				.onChange(async  (value) => {
+					console.log("Password: " + value)
+					this.plugin.settings.password = value;
+					await this.plugin.saveSettings()
+				}));
 	}
+}
+
+export interface OcotoBundle {
+	octokit: Octokit,
+	username: string
 }
