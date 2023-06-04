@@ -2,6 +2,7 @@ import {App, MarkdownView} from "obsidian";
 import {OcotoBundle} from "../main";
 import {Issue} from "./Issue";
 import {api_get_issues_by_url, api_get_own_issues, RepoItem} from "../API/ApiHandler";
+import {calculateHumanDate} from "../Utils/Utils";
 
 
 export async function insertIssues(app: App, octobundle: OcotoBundle, arg: string | RepoItem): Promise<void> {
@@ -19,7 +20,7 @@ export async function insertIssues(app: App, octobundle: OcotoBundle, arg: strin
 		//insert the issues as a new list
 		editor.replaceSelection('\n\n');
 		for (const issue of issues) {
-			editor.replaceSelection(`- #${issue.number} • "${issue.title}" by ${issue.author}\n`);
+			editor.replaceSelection(`- ##### #${issue.number} • "${issue.title}"\n\topened ${calculateHumanDate(issue.created_at)} by ${issue.author}\n`);
 		}
 	}
 
