@@ -2,13 +2,22 @@ import { Octokit } from "@octokit/core";
 import {Issue} from "../Issues/Issue";
 import {IssuesModal} from "../Modals/IssuesModal";
 import {parseRepoUrl} from "../Utils/Utils";
+import {OctokitResponse} from "@octokit/types";
 
 
 // authenticate
-export function api_authenticate(token: string) {
-	return new Octokit({
+export async function api_authenticate(token: string): Promise<Octokit | null> {
+	const octokit = new Octokit({
 		auth: token
 	});
+
+	const res: OctokitResponse<any> = await octokit.request("GET /octocat", {});
+	console.log(res)
+	if (res.status === 200) {
+		return octokit;
+	} else {
+		return null;
+	}
 }
 
 export async function api_get_repos(octokit: Octokit, username: string) {

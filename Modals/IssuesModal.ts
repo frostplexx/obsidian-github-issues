@@ -3,7 +3,7 @@ import {Octokit} from "@octokit/core";
 import {api_get_repos, RepoItem} from "../API/ApiHandler";
 import {OcotoBundle} from "../main";
 import {calculateHumanDate} from "../Utils/Utils";
-import {insertIssues} from "../Issues/IssueHandler";
+import {insertIssues} from "../Issues/IssueCreator";
 
 export class IssuesModal extends Modal {
 
@@ -31,7 +31,7 @@ export class IssuesModal extends Modal {
 		urlButton.style.padding = '5px';
 		urlButton.style.marginBottom = '10px';
 		urlButton.addEventListener('click', () => {
-			insertIssues(this.app, this.octobundle, urlInput.value);
+			insertIssues(this.app, this.octobundle, urlInput.value, this.octobundle.plugin_settings.issue_appearance);
 			this.close();
 		});
 
@@ -44,7 +44,7 @@ export class IssuesModal extends Modal {
 		loadingEl.style.paddingTop = '50px';
 
 
-		api_get_repos(this.octobundle.octokit, this.octobundle.username).then((repos) => {
+		api_get_repos(this.octobundle.octokit, this.octobundle.plugin_settings.username).then((repos) => {
 			loadingEl.remove();
 			//create a list of clickable repo names
 			const listEl = contentEl.createEl('ul');
@@ -60,7 +60,7 @@ export class IssuesModal extends Modal {
 			for (const repo of repos) {
 				const itemEl = repoItem(repo);
 				itemEl.addEventListener('click', () => {
-					insertIssues(this.app, this.octobundle, repo);
+					insertIssues(this.app, this.octobundle, repo, this.octobundle.plugin_settings.issue_appearance);
 					this.close();
 				});
 				listEl.appendChild(itemEl);

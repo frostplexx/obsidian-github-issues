@@ -1,17 +1,24 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import {api_authenticate, api_get_repos} from "./API/ApiHandler";
+import {api_authenticate} from "./API/ApiHandler";
 import {IssuesModal} from "./Modals/IssuesModal";
 import {Octokit} from "@octokit/core";
-// Remember to rename these classes and interfaces!
+import {updateIssues} from "./Issues/IssueUpdater";
 
+//enum for the appearance of the issues when pasted into the editor
+export enum IssueAppearance {
+	DEFAULT = "default",
+	COMPACT = "compact"
+}
 interface MyPluginSettings {
 	username: string;
 	password: string
+	issue_appearance: IssueAppearance;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	username: '',
-	password: ''
+	password: '',
+	issue_appearance: IssueAppearance.DEFAULT
 }
 
 export default class MyPlugin extends Plugin {
@@ -19,8 +26,17 @@ export default class MyPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		const ocotokit = await api_authenticate(this.settings.password);
 
+		let octokit: Octokit | null = null
+
+		try {
+			octokit = await api_authenticate(this.settings.password);
+			if (!octokit){
+				new Notice("Authentication failed. Please check your credentials.")
+			}
+		} catch (e) {
+			new Notice("Authentication failed. Please check your credentials.")
+		}
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
@@ -41,11 +57,20 @@ export default class MyPlugin extends Plugin {
 			name: 'Embed Issues',
 			callback: () => {
 				new IssuesModal(this.app, {
-					octokit: ocotokit,
-					username: this.settings.username
+					octokit: octokit,
+					plugin_settings: this.settings
 				} as OcotoBundle).open();
 			}
 		});
+
+		this.addCommand({
+			id: 'update-issues',
+			name: 'Update Issues',
+			callback: () => {
+				new Notice("Updating issues...")
+				updateIssues(this.app, {octokit: octokit!, plugin_settings: this.settings} as OcotoBundle,)
+			}
+		})
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -166,10 +191,25 @@ class GithubIssuesSettings extends PluginSettingTab {
 					this.plugin.settings.password = value;
 					await this.plugin.saveSettings()
 				}));
+
+		containerEl.createEl("h2",{text: "Appearance"});
+		new Setting(containerEl)
+			.setName("Issues Appearance")
+			.setDesc("How should the issues be displayed?")
+			.addDropdown(dropdown => dropdown
+				.addOption(IssueAppearance.DEFAULT, "Default")
+				.addOption(IssueAppearance.COMPACT, "Compact")
+				.setValue("default")
+				.onChange(async (value: IssueAppearance) => {
+					console.log("Appearance: " + value)
+					this.plugin.settings.issue_appearance = value;
+					await this.plugin.saveSettings()
+				}));
 	}
 }
 
+
 export interface OcotoBundle {
 	octokit: Octokit,
-	username: string
+	plugin_settings: MyPluginSettings
 }
