@@ -1,4 +1,4 @@
-import {App, Modal, Notice} from "obsidian";
+import {App, Modal, Notice, setIcon} from "obsidian";
 import {OctoBundle} from "../main";
 import {getRepoInFile, updateIssues} from "../Issues/IssueUpdater";
 import {api_get_labels, api_submit_issue, RepoItem, SubmittableIssue} from "../API/ApiHandler";
@@ -55,19 +55,11 @@ export class NewIssueModal extends Modal {
 			descriptionInput.style.fontFamily = 'monospace'
 			descriptionInput.style.fontSize = '12px'
 
+			//selected labels field
+			const selectedLabels = contentEl.createEl('div');
+			selectedLabels.style.display = 'flex'
+			selectedLabels.style.flexWrap = 'wrap'
 
-			//disabled text field that shows selected labels
-			//TODO make this a lot of divs
-			const selectedLabels = contentEl.createEl('input')
-			selectedLabels.setAttribute('type', 'text')
-			selectedLabels.setAttribute('placeholder', 'Selected Labels')
-			selectedLabels.style.width = '100%'
-			selectedLabels.style.padding = '5px'
-			selectedLabels.style.marginBottom = '10px'
-			selectedLabels.style.height = '30px'
-			selectedLabels.style.maxHeight = '30px'
-			selectedLabels.style.maxWidth = '100%'
-			selectedLabels.disabled = true
 
 
 
@@ -94,15 +86,52 @@ export class NewIssueModal extends Modal {
 				option.text = label
 			}
 
+			let elements: string[] = []
+
 			//add the selected label to the selected labels field
 			labelDropdown.addEventListener('change', () => {
-				if (labelDropdown.value !== 'Select Labels' && !selectedLabels.value.includes(labelDropdown.value)) {
-					selectedLabels.value += labelDropdown.value + ', '
-				} else if (selectedLabels.value.includes(labelDropdown.value)) {
-					selectedLabels.value = selectedLabels.value.replace(labelDropdown.value + ', ', '')
-				}
-				//set it back to select labels
+				const value = labelDropdown.value
 				labelDropdown.value = 'Select Labels'
+				const tag = selectedLabels.createEl('div');
+				tag.style.display = 'flex'
+				tag.style.alignItems = 'center'
+				tag.style.justifyContent = 'center'
+				tag.style.padding = '5px'
+				tag.style.margin = '5px'
+				tag.style.marginBottom = '10px'
+				tag.style.borderRadius = '5px'
+				tag.style.backgroundColor = 'var(--background-modifier-form-field)'
+				//create button to remove the tag
+				tag.createEl('span', {text: value})
+				const removeButton = tag.createEl('button');
+				removeButton.style.backgroundColor = "inherit";
+				removeButton.style.border = 'none'
+				removeButton.style.outline = 'none'
+				removeButton.style.boxShadow = 'none'
+				removeButton.style.padding = '0'
+				removeButton.style.margin = '0'
+				setIcon(removeButton, 'x')
+
+				removeButton.onclick = () => {
+					selectedLabels.removeChild(tag)
+					elements = elements.filter(e => e !== value);
+					labelDropdown.childNodes.forEach((node: ChildNode) => {
+						if (node instanceof HTMLOptionElement) {
+							if (node.value === value) {
+								node.disabled = false
+							}
+						}
+					})
+				}
+				removeButton.style.marginLeft = '5px'
+				elements.push(value)
+				labelDropdown.childNodes.forEach((node: ChildNode) => {
+					if (node instanceof HTMLOptionElement) {
+						if (node.value === value) {
+							node.disabled = true
+						}
+					}
+				})
 			});
 
 
@@ -112,10 +141,9 @@ export class NewIssueModal extends Modal {
 
 			//submit the issue
 			submitButton.addEventListener('click', async () => {
-				const labels = selectedLabels.value.split(', ').pop()
-				console.log();
+
 				const submitted = await api_submit_issue(this.ocotoBundle.octokit,repo()!, {
-					labels: labels ? labels : [],
+					labels: elements,
 					title: titleInput.value,
 					description: descriptionInput.value,
 				} as SubmittableIssue)
