@@ -1,14 +1,13 @@
 import {App, Modal} from "obsidian";
-import {Octokit} from "@octokit/core";
 import {api_get_repos, RepoItem} from "../API/ApiHandler";
-import {OcotoBundle} from "../main";
+import {OctoBundle} from "../main";
 import {calculateHumanDate} from "../Utils/Utils";
 import {insertIssues} from "../Issues/IssueCreator";
 
 export class IssuesModal extends Modal {
 
-	octobundle: OcotoBundle;
-	constructor(app: App, octobundle: OcotoBundle) {
+	octobundle: OctoBundle;
+	constructor(app: App, octobundle: OctoBundle) {
 		super(app);
 		this.octobundle = octobundle;
 	}
@@ -37,6 +36,26 @@ export class IssuesModal extends Modal {
 
 		//title "Select a repo"
 		contentEl.createEl('h2', {text: 'Your Repositories'});
+
+		//add search bar
+		const searchInput = contentEl.createEl('input');
+		searchInput.setAttribute('type', 'text');
+		searchInput.setAttribute('placeholder', 'Search...');
+		searchInput.style.width = '100%';
+		searchInput.addEventListener('input', () => {
+			const listEl = contentEl.querySelector('ul');
+			if (listEl) {
+				const items = listEl.querySelectorAll('li');
+				// @ts-ignore
+				for (const item of items) {
+					if (item.textContent.toLowerCase().includes(searchInput.value.toLowerCase())) {
+						item.style.display = 'block';
+					} else {
+						item.style.display = 'none';
+					}
+				}
+			}
+		});
 
 		//loading indicator for repos
 		const loadingEl = contentEl.createEl('h4', {text: 'Loading...'});

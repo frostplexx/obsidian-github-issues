@@ -1,9 +1,35 @@
 import {App, MarkdownView, Notice} from "obsidian";
-import { OcotoBundle} from "../main";
+import { OctoBundle} from "../main";
 import {insertIssues} from "./IssueCreator";
 
 
-export function updateIssues(app: App, octobundle: OcotoBundle) {
+export function updateIssues(app: App, octobundle: OctoBundle) {
+	const repo = getRepoInFile(app);
+	const view = app.workspace.getActiveViewOfType(MarkdownView)
+
+	if(repo && view){
+		const editor = view.editor;
+		const url = "https://github.com/" + name + "/" + repo + ".git";
+
+		//delete the lines between the start and end line
+		editor.replaceRange("", {line: repo.start_line, ch: 0}, {line: repo.end_line + 2, ch: 0});
+
+		//set the cursor to the start line
+		editor.setCursor({line: repo.start_line, ch: 0});
+
+		//insert the issues
+		insertIssues(app, octobundle, url, octobundle.plugin_settings.issue_appearance).then(r => {
+			console.log("done");
+			new Notice("Updated issues");
+		})
+
+	} else {
+		new Notice("No active view");
+	}
+
+}
+
+export function getRepoInFile(app: App) {
 	//get the current editor
 	const view = app.workspace.getActiveViewOfType(MarkdownView)
 	if (view) {
@@ -37,21 +63,19 @@ export function updateIssues(app: App, octobundle: OcotoBundle) {
 		console.log(name);
 		console.log(repo);
 
-		const url = "https://github.com/" + name + "/" + repo + ".git";
-
-		//delete the lines between the start and end line
-		editor.replaceRange("", {line: start_line, ch: 0}, {line: end_line + 2, ch: 0});
-
-		//set the cursor to the start line
-		editor.setCursor({line: start_line, ch: 0});
-
-		//insert the issues
-		insertIssues(app, octobundle, url, octobundle.plugin_settings.issue_appearance).then(r => {
-			console.log("done");
-			new Notice("Updated issues");
-		})
-
-	} else {
-		new Notice("No active view");
+		return {
+			name: name,
+			repo: repo,
+			start_line: start_line,
+			end_line: end_line
+		} as FileRepo
 	}
+	return null;
+}
+
+interface FileRepo {
+	name: string,
+	repo: string,
+	start_line: number,
+	end_line: number
 }

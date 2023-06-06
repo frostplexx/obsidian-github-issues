@@ -3,6 +3,7 @@ import {api_authenticate} from "./API/ApiHandler";
 import {IssuesModal} from "./Modals/IssuesModal";
 import {Octokit} from "@octokit/core";
 import {updateIssues} from "./Issues/IssueUpdater";
+import {NewIssueModal} from "./Modals/NewIssueModal";
 
 //enum for the appearance of the issues when pasted into the editor
 export enum IssueAppearance {
@@ -54,12 +55,12 @@ export default class MyPlugin extends Plugin {
 		//add issues of repo command
 		this.addCommand({
 			id: 'embed-issues',
-			name: 'Embed Issues',
+			name: 'Embed open Issues',
 			callback: () => {
 				new IssuesModal(this.app, {
 					octokit: octokit,
 					plugin_settings: this.settings
-				} as OcotoBundle).open();
+				} as OctoBundle).open();
 			}
 		});
 
@@ -68,7 +69,15 @@ export default class MyPlugin extends Plugin {
 			name: 'Update Issues',
 			callback: () => {
 				new Notice("Updating issues...")
-				updateIssues(this.app, {octokit: octokit!, plugin_settings: this.settings} as OcotoBundle,)
+				updateIssues(this.app, {octokit: octokit!, plugin_settings: this.settings} as OctoBundle,)
+			}
+		})
+
+		this.addCommand({
+			id: "new-issue",
+			name: "Create new Issue",
+			callback: () => {
+				new NewIssueModal(this.app, {octokit: octokit!, plugin_settings: this.settings} as OctoBundle).open()
 			}
 		})
 
@@ -209,7 +218,7 @@ class GithubIssuesSettings extends PluginSettingTab {
 }
 
 
-export interface OcotoBundle {
+export interface OctoBundle {
 	octokit: Octokit,
 	plugin_settings: MyPluginSettings
 }

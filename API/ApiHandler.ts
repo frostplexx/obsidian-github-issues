@@ -40,6 +40,47 @@ export async function api_get_repos(octokit: Octokit, username: string) {
 	);
 }
 
+export async function api_get_labels(octokit: Octokit, repo: RepoItem): Promise<any[]>{
+
+	const res = await octokit.request('GET /repos/{owner}/{repo}/labels', {
+		owner: repo.owner,
+		repo: repo.name,
+		headers: {
+			'X-GitHub-Api-Version': '2022-11-28'
+		}
+	})
+
+	if(res.status == 200){
+		return res.data.map((label: any) => {
+				return label.name;
+		})
+	} else {
+		return [];
+	}
+}
+
+export async function api_submit_issue(octokit: Octokit, repo: RepoItem, issue: SubmittableIssue) {
+	const res = await octokit.request('POST /repos/{owner}/{repo}/issues', {
+		owner: repo.owner,
+		repo: repo.name,
+		title: issue.title,
+		body: issue.description,
+		assignees: [
+			repo.owner
+		],
+		labels: issue.labels,
+		headers: {
+			'X-GitHub-Api-Version': '2022-11-28'
+		}
+	})
+
+	if(res.status == 201){
+		return true;
+	} else {
+		return false;
+	}
+}
+
 export async function api_get_issues_by_url(octokit: Octokit, url: string): Promise<Issue[]> {
 
 	const {owner, repo} = parseRepoUrl(url);
@@ -51,7 +92,6 @@ export async function api_get_issues_by_url(octokit: Octokit, url: string): Prom
 			'X-GitHub-Api-Version': '2022-11-28'
 		}
 	})
-
 	for (const issue of res.data) {
 		issues.push({
 			title: issue.title,
@@ -95,4 +135,10 @@ export interface RepoItem {
 	language: string;
 	updated_at: string;
 	owner: string;
+}
+
+export interface SubmittableIssue {
+	title: string;
+	description: string;
+	labels: string[];
 }
