@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-github-issues",
 	"name": "Github Issues",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"minAppVersion": "0.15.0",
 	"description": "A plugin to view and edit Github issues in Obsidian. Uses the Github API to fetch issues and comments.",
 	"author": "Obsidian",
