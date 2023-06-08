@@ -31,3 +31,27 @@ export function verifyURL(url: string): boolean {
 		return false;
 	}
 }
+/*
+ * Parses the given date string into a human readable delta e.g. 1 day, 2 hours, 5 min ago or a human readable date if the date is older than 1 week
+ */
+export function getPasteableTimeDelta(dateString: string){
+	const date = new Date(dateString);
+	const now = new Date();
+	const delta = now.getTime() - date.getTime();
+	const seconds = Math.floor(delta / 1000);
+	const minutes = Math.floor(seconds / 60);
+	const hours = Math.floor(minutes / 60);
+	const days = Math.floor(hours / 24);
+	const weeks = Math.floor(days / 7);
+	if (weeks > 0) {
+		return "on " + date.toLocaleDateString(undefined );
+	} else if (days > 0) {
+		return `${days} days ago`;
+	} else if (hours > 0) {
+		return `${hours} hours ago`;
+	} else if (minutes > 0) {
+		return `${minutes} minutes ago`;
+	} else {
+		return `${seconds} seconds ago`;
+	}
+}

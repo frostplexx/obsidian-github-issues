@@ -1,13 +1,15 @@
 import {App, MarkdownView, Notice} from "obsidian";
-import { OctoBundle} from "../main";
-import {insertIssues} from "./IssueCreator";
 import {api_get_issues_by_url} from "../API/ApiHandler";
-import {Issue} from "./Issue";
 import {verifyURL} from "../Utils/Utils";
 import {pasteIssues} from "./Issues.shared";
+import {Octokit} from "@octokit/core";
 
-
-export async function updateIssues(app: App, octobundle: OctoBundle) {
+/**
+ * Fetches issues from the given url and updates them in the current editor
+ * @param app
+ * @param octobundle
+ */
+export async function updateIssues(app: App, octobundle: Octokit) {
 	const repo = getRepoInFile(app);
 	const view = app.workspace.getActiveViewOfType(MarkdownView)
 
@@ -31,7 +33,7 @@ export async function updateIssues(app: App, octobundle: OctoBundle) {
 			editor.setCursor({line: repo.start_line, ch: 0});
 
 			//insert the issues
-			const pasted = pasteIssues(view, url, issues, octobundle.plugin_settings.issue_appearance);
+			const pasted = pasteIssues(view, url, issues);
 			if (pasted){
 				new Notice("Updated issues");
 			} else {
@@ -44,31 +46,40 @@ export async function updateIssues(app: App, octobundle: OctoBundle) {
 
 }
 
-async function fetchIssues(octobundle: OctoBundle, url: string) {
-	const issues = await api_get_issues_by_url(octobundle.octokit, url);
+/**
+ * Fetches issues from the given url
+ * @param octokit
+ * @param url
+ */
+async function fetchIssues(octokit: Octokit, url: string) {
+	const issues = await api_get_issues_by_url(octokit, url);
 	if (issues.length === 0){
 		return null;
 	}
 	return issues;
 }
 
+/**
+ * Gets the repo name and repo from the current file
+ * This is very hacky and should be replaced with a better solution
+ * @param app
+ */
 export function getRepoInFile(app: App) {
 	//get the current editor
 	const view = app.workspace.getActiveViewOfType(MarkdownView)
 	if (view) {
 		const editor = view.editor;
-		//detect the start and end of the issues where <!-- GITHUB_ISSUES_START [user/repo]--> and <!-- GITHUB_ISSUES_STOP --> are. user/repo are always different
 
-		//get the start line where <!-- GITHUB_ISSUES_START [user/repo]--> is
 		//loop trough the document and print every line
 		let start_line = 0;
 		let end_line = 0;
 		for (let i = 0; i < editor.lineCount(); i++) {
 			const line = editor.getLine(i);
-			if (line.includes("<!-- GITHUB_ISSUES_START")) {
+			console.log(line);
+			if (line.includes("```github-issues")) {
 				start_line = i;
 			}
-			if (line.includes("<!-- GITHUB_ISSUES_STOP")) {
+			if (line.includes("```")) {
 				end_line = i;
 			}
 		}
@@ -77,12 +88,10 @@ export function getRepoInFile(app: App) {
 		console.log(end_line);
 
 		//parse the name and the repo from the start line
-		const start_line_text = editor.getLine(start_line);
-		const start_line_text_splitted = start_line_text.split(" ");
-		const name_and_repo = start_line_text_splitted[2];
-		const name_and_repo_splitted = name_and_repo.split("/");
-		const name = name_and_repo_splitted[0].replace("[", "");
-		const repo = name_and_repo_splitted[1].replace("]-->", "");
+		const start_line_text = editor.getLine(start_line + 1);
+		const name_and_repo_split = start_line_text.split("/");
+		const name = name_and_repo_split[0];
+		const repo = name_and_repo_split[1];
 		console.log(name);
 		console.log(repo);
 

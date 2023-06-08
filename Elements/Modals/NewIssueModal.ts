@@ -1,8 +1,12 @@
 import {App, Modal, Notice, setIcon} from "obsidian";
-import {OctoBundle} from "../main";
-import {getRepoInFile, updateIssues} from "../Issues/IssueUpdater";
-import {api_get_labels, api_submit_issue, RepoItem, SubmittableIssue} from "../API/ApiHandler";
+import {OctoBundle} from "../../main";
+import {getRepoInFile, updateIssues} from "../../Issues/IssueUpdater";
+import {api_get_labels, api_submit_issue, RepoItem, SubmittableIssue} from "../../API/ApiHandler";
+import {loadingSpinner} from "../../Utils/Loader";
 
+/*
+* Modal for creating a new issue inside obsidian
+ */
 export class NewIssueModal extends Modal {
 	ocotoBundle: OctoBundle;
 	constructor(app: App, ocotoBundle: OctoBundle) {
@@ -24,14 +28,15 @@ export class NewIssueModal extends Modal {
 
 		if (repo()) {
 
+			const {contentEl} = this
+			contentEl.createEl('h2', {text: 'New Issue'})
+			const spinner = loadingSpinner();
+			contentEl.appendChild(spinner);
 			//get the labels
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const labels = await api_get_labels(this.ocotoBundle.octokit, repo()!);
-			console.log(labels);
 
-
-			const {contentEl} = this
-			contentEl.createEl('h2', {text: 'New Issue'})
+			spinner.remove();
 			//title input field
 			const titleInput = contentEl.createEl('input')
 			titleInput.setAttribute('type', 'text')
@@ -142,6 +147,7 @@ export class NewIssueModal extends Modal {
 			//submit the issue
 			submitButton.addEventListener('click', async () => {
 
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				const submitted = await api_submit_issue(this.ocotoBundle.octokit,repo()!, {
 					labels: elements,
 					title: titleInput.value,
@@ -151,7 +157,7 @@ export class NewIssueModal extends Modal {
 				if (submitted) {
 					new Notice('Submitted Issue')
 					this.close()
-					await updateIssues(this.app, this.ocotoBundle)
+					await updateIssues(this.app, this.ocotoBundle.octokit)
 				} else {
 					new Notice('Failed to submit issue')
 				}

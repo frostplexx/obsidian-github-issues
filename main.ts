@@ -1,9 +1,11 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import {api_authenticate} from "./API/ApiHandler";
-import {IssuesModal} from "./Modals/IssuesModal";
+import {api_authenticate, RepoItem} from "./API/ApiHandler";
+import {IssuesModal} from "./Elements/Modals/IssuesModal";
 import {Octokit} from "@octokit/core";
 import {updateIssues} from "./Issues/IssueUpdater";
-import {NewIssueModal} from "./Modals/NewIssueModal";
+import {NewIssueModal} from "./Elements/Modals/NewIssueModal";
+import {createCompactIssueElement, createDefaultIssueElement} from "./Elements/IssueItems";
+import {CSVIssue, Issue} from "./Issues/Issue";
 
 //enum for the appearance of the issues when pasted into the editor
 export enum IssueAppearance {
@@ -28,16 +30,52 @@ export default class MyPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
+
+
+
+
 		let octokit: Octokit | null = null
 
 		try {
 			octokit = await api_authenticate(this.settings.password);
 			if (!octokit){
 				new Notice("Authentication failed. Please check your credentials.")
+				return;
 			}
 		} catch (e) {
 			new Notice("Authentication failed. Please check your credentials.")
+			return;
 		}
+
+
+		//register markdown post processor
+		this.registerMarkdownCodeBlockProcessor("github-issues", (source, el, ctx ) => {
+			const rows = source.split("\n").filter((row) => row.length > 0);
+			const repoName = rows[0].split("/")[1]
+			const owner = rows[0].split("/")[0]
+
+			const repo: RepoItem = {
+				owner: owner,
+				name: repoName,
+				id: 0,
+				language: "",
+				updated_at: "",
+			}
+
+			rows.forEach((row, index) => {
+				if(index === 0) return;
+				const issue: Issue = new CSVIssue(row, repo);
+
+				switch (this.settings.issue_appearance) {
+					case IssueAppearance.DEFAULT:
+						createDefaultIssueElement(el,issue, octokit!, app);
+				break;
+			case IssueAppearance.COMPACT:
+				createCompactIssueElement(el, issue, octokit!, app);
+				break;
+			}
+		});
+	})
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
@@ -213,6 +251,9 @@ class GithubIssuesSettings extends PluginSettingTab {
 					console.log("Appearance: " + value)
 					this.plugin.settings.issue_appearance = value;
 					await this.plugin.saveSettings()
+
+
+					//TODO trigger a rerender of the issues
 				}));
 	}
 }
