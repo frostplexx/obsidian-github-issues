@@ -3,6 +3,7 @@ import {Issue} from "../Issues/Issue";
 import {IssuesModal} from "../Modals/IssuesModal";
 import {parseRepoUrl} from "../Utils/Utils";
 import {OctokitResponse} from "@octokit/types";
+import {Notice} from "obsidian";
 
 
 // authenticate
@@ -85,24 +86,37 @@ export async function api_get_issues_by_url(octokit: Octokit, url: string): Prom
 
 	const {owner, repo} = parseRepoUrl(url);
 	const issues: Issue[] = [];
-	const res = await octokit.request('GET /repos/{owner}/{repo}/issues', {
-		owner: owner,
-		repo: repo,
-		headers: {
-			'X-GitHub-Api-Version': '2022-11-28'
+	try {
+		const res = await octokit.request('GET /repos/{owner}/{repo}/issues', {
+			owner: owner,
+			repo: repo,
+			headers: {
+				'X-GitHub-Api-Version': '2022-11-28'
+			}
+		})
+
+		if(res.status == 200){
+			for (const issue of res.data) {
+				issues.push({
+					title: issue.title,
+					number: issue.number,
+					author: issue.user?.login,
+					description: issue.body,
+					created_at: issue.created_at,
+				} as Issue);
+			}
+
+			return issues;
+		} else {
+			return [];
 		}
-	})
-	for (const issue of res.data) {
-		issues.push({
-			title: issue.title,
-			number: issue.number,
-			author: issue.user?.login,
-			description: issue.body,
-			created_at: issue.created_at,
-		} as Issue);
+
+	} catch (e) {
+		new Notice("Error while fetching issues: " + e.message);
+		return [];
 	}
 
-	return issues;
+
 }
 
 export async function api_get_own_issues(octokit: Octokit, repo: RepoItem): Promise<Issue[]> {

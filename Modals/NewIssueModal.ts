@@ -151,8 +151,7 @@ export class NewIssueModal extends Modal {
 				if (submitted) {
 					new Notice('Submitted Issue')
 					this.close()
-					await new Promise(resolve => setTimeout(resolve, 1000));
-					updateIssues(this.app, this.ocotoBundle)
+					await updateIssues(this.app, this.ocotoBundle)
 				} else {
 					new Notice('Failed to submit issue')
 				}

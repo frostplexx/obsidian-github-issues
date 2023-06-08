@@ -1,32 +1,55 @@
 import {App, MarkdownView, Notice} from "obsidian";
 import { OctoBundle} from "../main";
 import {insertIssues} from "./IssueCreator";
+import {api_get_issues_by_url} from "../API/ApiHandler";
+import {Issue} from "./Issue";
+import {verifyURL} from "../Utils/Utils";
+import {pasteIssues} from "./Issues.shared";
 
 
-export function updateIssues(app: App, octobundle: OctoBundle) {
+export async function updateIssues(app: App, octobundle: OctoBundle) {
 	const repo = getRepoInFile(app);
 	const view = app.workspace.getActiveViewOfType(MarkdownView)
 
-	if(repo && view){
+	if (repo && view) {
 		const editor = view.editor;
-		const url = "https://github.com/" + name + "/" + repo + ".git";
+		const url = "https://github.com/" + repo.name + "/" + repo.repo + ".git";
 
-		//delete the lines between the start and end line
-		editor.replaceRange("", {line: repo.start_line, ch: 0}, {line: repo.end_line + 2, ch: 0});
+		//verify the url
+		if(!verifyURL(url)){
+			new Notice("Error building url: " + url)
+			return;
+		}
 
-		//set the cursor to the start line
-		editor.setCursor({line: repo.start_line, ch: 0});
+		const issues = await fetchIssues(octobundle, url);
 
-		//insert the issues
-		insertIssues(app, octobundle, url, octobundle.plugin_settings.issue_appearance).then(r => {
-			console.log("done");
-			new Notice("Updated issues");
-		})
+		if (issues) {
+			//delete the lines between the start and end line
+			editor.replaceRange("", {line: repo.start_line, ch: 0}, {line: repo.end_line + 2, ch: 0});
 
+			//set the cursor to the start line
+			editor.setCursor({line: repo.start_line, ch: 0});
+
+			//insert the issues
+			const pasted = pasteIssues(view, url, issues, octobundle.plugin_settings.issue_appearance);
+			if (pasted){
+				new Notice("Updated issues");
+			} else {
+				new Notice("Some error occurred while pasting the issues")
+			}
+		}
 	} else {
 		new Notice("No active view");
 	}
 
+}
+
+async function fetchIssues(octobundle: OctoBundle, url: string) {
+	const issues = await api_get_issues_by_url(octobundle.octokit, url);
+	if (issues.length === 0){
+		return null;
+	}
+	return issues;
 }
 
 export function getRepoInFile(app: App) {
