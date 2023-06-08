@@ -7,9 +7,9 @@ import {Octokit} from "@octokit/core";
 /**
  * Fetches issues from the given url and updates them in the current editor
  * @param app
- * @param octobundle
+ * @param octokit
  */
-export async function updateIssues(app: App, octobundle: Octokit) {
+export async function updateIssues(app: App, octokit: Octokit) {
 	const repo = getRepoInFile(app);
 	const view = app.workspace.getActiveViewOfType(MarkdownView)
 
@@ -23,7 +23,7 @@ export async function updateIssues(app: App, octobundle: Octokit) {
 			return;
 		}
 
-		const issues = await fetchIssues(octobundle, url);
+		const issues = await fetchIssues(octokit, url);
 
 		if (issues) {
 			//delete the lines between the start and end line

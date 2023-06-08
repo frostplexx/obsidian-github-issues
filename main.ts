@@ -107,7 +107,7 @@ export default class MyPlugin extends Plugin {
 			name: 'Update Issues',
 			callback: () => {
 				new Notice("Updating issues...")
-				updateIssues(this.app, {octokit: octokit!, plugin_settings: this.settings} as OctoBundle,)
+				updateIssues(this.app, octokit!)
 			}
 		})
 
