@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import {App, Notice, Plugin, PluginSettingTab, setIcon, Setting} from 'obsidian';
 import {api_authenticate, RepoItem} from "./API/ApiHandler";
 import {IssuesModal} from "./Elements/Modals/IssuesModal";
 import {Octokit} from "@octokit/core";
@@ -6,7 +6,9 @@ import {updateIssues} from "./Issues/IssueUpdater";
 import {NewIssueModal} from "./Elements/Modals/NewIssueModal";
 import {createCompactIssueElement, createDefaultIssueElement} from "./Elements/IssueItems";
 import {CSVIssue, Issue} from "./Issues/Issue";
-
+// @ts-ignore
+import { messages } from "./Messages/Errors.json";
+import "./Messages/Errors.json";
 //enum for the appearance of the issues when pasted into the editor
 export enum IssueAppearance {
 	DEFAULT = "default",
@@ -26,28 +28,22 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
-
+	octokit : Octokit | null = null;
 	async onload() {
 		await this.loadSettings();
 
-
-
-
-
-		let octokit: Octokit | null = null
-
-		try {
-			octokit = await api_authenticate(this.settings.password);
-			if (!octokit){
+		if (this.settings.password == "" || this.settings.username == ""){
+			new Notice("Please enter your username and password in the settings.")
+		} else {
+			try {
+				this.octokit = await api_authenticate(this.settings.password);
+				if (!this.octokit){
+					new Notice("Authentication failed. Please check your credentials.")
+				}
+			} catch (e) {
 				new Notice("Authentication failed. Please check your credentials.")
-				return;
 			}
-		} catch (e) {
-			new Notice("Authentication failed. Please check your credentials.")
-			return;
 		}
-
-
 		//register markdown post processor
 		this.registerMarkdownCodeBlockProcessor("github-issues", (source, el, ctx ) => {
 			const rows = source.split("\n").filter((row) => row.length > 0);
@@ -62,32 +58,75 @@ export default class MyPlugin extends Plugin {
 				updated_at: "",
 			}
 
+			el.style.display = "flex";
+			el.style.flexDirection = "column";
+			el.style.alignItems = "center";
+			el.style.justifyContent = "center";
+
+
+			//add a refresh button
+			const refreshButton = el.createEl("button" )
+			refreshButton.addEventListener("click", () => {
+				updateIssues(this.app, this.octokit!)
+			});
+			setIcon(refreshButton, "sync")
+			refreshButton.style.backgroundColor = "inherit";
+			refreshButton.style.border = 'none'
+			refreshButton.style.outline = 'none'
+			refreshButton.style.boxShadow = 'none'
+			refreshButton.style.padding = '10px'
+			refreshButton.style.display = 'none'
+			refreshButton.style.alignItems = 'center'
+			refreshButton.style.justifyContent = 'center'
+			refreshButton.style.margin = '0'
+			refreshButton.style.cursor = "pointer"
+			//force the button to be on the left
+			refreshButton.style.position = "absolute"
+			refreshButton.style.left = "3px"
+			refreshButton.style.top = "3px"
+
+			refreshButton.addEventListener("mouseenter", () => {
+				refreshButton.style.background = "var(--background-modifier-hover)"
+			});
+
+			refreshButton.addEventListener("mouseleave", () => {
+				refreshButton.style.background = "inherit"
+			});
+
+			//show the button when el is hovered
+			el.addEventListener("mouseenter", () => {
+				refreshButton.style.display = "flex"
+			})
+			el.addEventListener("mouseleave", () => {
+				refreshButton.style.display = "none"
+			})
+
 			rows.forEach((row, index) => {
 				if(index === 0) return;
 				const issue: Issue = new CSVIssue(row, repo);
 
 				switch (this.settings.issue_appearance) {
 					case IssueAppearance.DEFAULT:
-						createDefaultIssueElement(el,issue, octokit!, app);
+						createDefaultIssueElement(el,issue, this.octokit!, app);
 				break;
 			case IssueAppearance.COMPACT:
-				createCompactIssueElement(el, issue, octokit!, app);
+				createCompactIssueElement(el, issue, this.octokit!, app);
 				break;
 			}
 		});
 	})
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
+		// // This creates an icon in the left ribbon.
+		// const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
+		// 	// Called when the user clicks the icon.
+		// 	new Notice('This is a notice!');
+		// });
 		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		// ribbonIconEl.addClass('my-plugin-ribbon-class');
 
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
+		// const statusBarItemEl = this.addStatusBarItem();
+		// statusBarItemEl.setText('Status Bar Text');
 
 
 		//add issues of repo command
@@ -95,10 +134,14 @@ export default class MyPlugin extends Plugin {
 			id: 'embed-issues',
 			name: 'Embed open Issues',
 			callback: () => {
-				new IssuesModal(this.app, {
-					octokit: octokit,
-					plugin_settings: this.settings
-				} as OctoBundle).open();
+				if (this.octokit){
+					new IssuesModal(this.app, {
+						octokit: this.octokit,
+						plugin_settings: this.settings
+					} as OctoBundle).open();
+				} else {
+					new Notice(messages.noCreds);
+				}
 			}
 		});
 
@@ -106,8 +149,12 @@ export default class MyPlugin extends Plugin {
 			id: 'update-issues',
 			name: 'Update Issues',
 			callback: () => {
-				new Notice("Updating issues...")
-				updateIssues(this.app, octokit!)
+				if(this.octokit){
+					new Notice("Updating issues...")
+					updateIssues(this.app, this.octokit!)
+				} else {
+					new Notice(messages.noCreds);
+				}
 			}
 		})
 
@@ -115,46 +162,34 @@ export default class MyPlugin extends Plugin {
 			id: "new-issue",
 			name: "Create new Issue",
 			callback: () => {
-				new NewIssueModal(this.app, {octokit: octokit!, plugin_settings: this.settings} as OctoBundle).open()
+				if(this.octokit){
+					new NewIssueModal(this.app, {octokit: this.octokit!, plugin_settings: this.settings} as OctoBundle).open()
+				} else {
+					new Notice(messages.noCreds);
+				}
 			}
 		})
 
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-			}
-		});
+		// This adds a complex command that can check whether the current state of the app allows execution of the command
+		// this.addCommand({
+		// 	id: 'open-sample-modal-complex',
+		// 	name: 'Open sample modal (complex)',
+		// 	checkCallback: (checking: boolean) => {
+		// 		// Conditions to check
+		// 		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		// 		if (markdownView) {
+		// 			// If checking is true, we're simply "checking" if the command can be run.
+		// 			// If checking is false, then we want to actually perform the operation.
+		// 			if (!checking) {
+		// 				new SampleModal(this.app).open();
+		// 			}
+		//
+		// 			// This command will only show up in Command Palette when the check function returns true
+		// 			return true;
+		// 		}
+		// 	}
+		// });
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new GithubIssuesSettings(this.app, this));
@@ -182,22 +217,22 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
+// class SampleModal extends Modal {
+// 	constructor(app: App) {
+// 		super(app);
+// 	}
+//
+// 	onOpen() {
+// 		const {contentEl} = this;
+// 		contentEl.setText('Woah!');
+// 	}
+//
+// 	onClose() {
+// 		const {contentEl} = this;
+// 		contentEl.empty();
+// 	}
+// }
+//
 class GithubIssuesSettings extends PluginSettingTab {
 	plugin: MyPlugin;
 
@@ -213,6 +248,13 @@ class GithubIssuesSettings extends PluginSettingTab {
 
 		containerEl.createEl('h2', {text: 'Github Authentication'});
 
+		containerEl.createSpan({
+			text: "For authenticating you need to provide your Github Username and a Personal Authentication Token. You can create a new token "
+		}).createEl('a', {
+			text: "here.",
+			href: "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token"
+		})
+
 		// username
 		new Setting(containerEl)
 			.setName('Username')
@@ -224,6 +266,10 @@ class GithubIssuesSettings extends PluginSettingTab {
 					console.log('Username: ' + value);
 					this.plugin.settings.username = value;
 					await this.plugin.saveSettings();
+					this.plugin.octokit = await api_authenticate(this.plugin.settings.username);
+					if (this.plugin.octokit && this.plugin.settings.password) {
+						new Notice("Successfully authenticated!")
+					}
 				}));
 
 		// password
@@ -237,6 +283,11 @@ class GithubIssuesSettings extends PluginSettingTab {
 					console.log("Password: " + value)
 					this.plugin.settings.password = value;
 					await this.plugin.saveSettings()
+					//trigger reauthentication
+					this.plugin.octokit = await api_authenticate(this.plugin.settings.password);
+					if (this.plugin.octokit && this.plugin.settings.username){
+						new Notice("Successfully authenticated!")
+					}
 				}));
 
 		containerEl.createEl("h2",{text: "Appearance"});
@@ -251,7 +302,6 @@ class GithubIssuesSettings extends PluginSettingTab {
 					console.log("Appearance: " + value)
 					this.plugin.settings.issue_appearance = value;
 					await this.plugin.saveSettings()
-
 
 					//TODO trigger a rerender of the issues
 				}));

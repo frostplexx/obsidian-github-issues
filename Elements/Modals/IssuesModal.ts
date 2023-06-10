@@ -3,6 +3,7 @@ import {api_get_repos, RepoItem} from "../../API/ApiHandler";
 import {OctoBundle} from "../../main";
 import {calculateHumanDate} from "../../Utils/Utils";
 import {insertIssues} from "../../Issues/IssueCreator";
+import {loadingSpinner} from "../../Utils/Loader";
 
 /*
 * Modal for choosing and inserting issues
@@ -61,10 +62,8 @@ export class IssuesModal extends Modal {
 		});
 
 		//loading indicator for repos
-		const loadingEl = contentEl.createEl('h4', {text: 'Loading...'});
-		loadingEl.style.textAlign = 'center';
-		loadingEl.style.paddingTop = '50px';
-
+		const loadingEl = loadingSpinner();
+		contentEl.appendChild(loadingEl);
 
 		api_get_repos(this.octobundle.octokit, this.octobundle.plugin_settings.username).then((repos) => {
 			loadingEl.remove();

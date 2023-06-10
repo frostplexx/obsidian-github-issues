@@ -11,10 +11,7 @@ import {Octokit} from "@octokit/core";
  * @param reponame - the name of the repo the issue is in
  */
 export function createDefaultIssueElement(el: HTMLElement, issue: Issue, ocotokit: Octokit, app: App){
-	el.style.display = "flex";
-	el.style.flexDirection = "column";
-	el.style.alignItems = "center";
-	el.style.justifyContent = "center";
+
 
 	const container = el.createDiv({cls: "issue-container"});
 	container.style.cursor = "pointer";
@@ -66,10 +63,6 @@ export function createDefaultIssueElement(el: HTMLElement, issue: Issue, ocotoki
 
 
 export function createCompactIssueElement(el: HTMLElement, issue: Issue, ocotokit: Octokit, app: App){
-	el.style.display = "flex";
-	el.style.flexDirection = "column";
-	el.style.alignItems = "center";
-	el.style.justifyContent = "center";
 
 	const container = el.createDiv({cls: "issue-container"});
 	container.style.cursor = "pointer";
