@@ -1,6 +1,5 @@
 import { Octokit } from "@octokit/core";
 import {Issue} from "../Issues/Issue";
-import {IssuesModal} from "../Elements/Modals/IssuesModal";
 import {parseRepoUrl} from "../Utils/Utils";
 import {OctokitResponse} from "@octokit/types";
 import {Notice} from "obsidian";
@@ -15,7 +14,7 @@ export async function api_authenticate(token: string): Promise<Octokit | null> {
 		auth: token
 	});
 
-	const res: OctokitResponse<any> = await octokit.request("GET /octocat", {});
+	const res: OctokitResponse<never> = await octokit.request("GET /octocat", {});
 	console.log(res)
 	if (res.status === 200) {
 		return octokit;
@@ -27,9 +26,8 @@ export async function api_authenticate(token: string): Promise<Octokit | null> {
 /**
  * Returns all the repos of a user specified by the username
  * @param octokit
- * @param username
  */
-export async function api_get_repos(octokit: Octokit, username: string) {
+export async function api_get_repos(octokit: Octokit) {
 	const res = await octokit.request('GET /user/repos', {
 		headers: {
 			'X-GitHub-Api-Version': '2022-11-28'
@@ -37,7 +35,7 @@ export async function api_get_repos(octokit: Octokit, username: string) {
 	})
 	console.log(res.data);
 	//return an array of the repo names and ids
-	return res.data.map((repo: any) => {
+	return res.data.map((repo) => {
 		return {
 			id: repo.id,
 			name: repo.name,
@@ -65,7 +63,7 @@ export async function api_get_labels(octokit: Octokit, repo: RepoItem): Promise<
 	})
 
 	if(res.status == 200){
-		return res.data.map((label: any) => {
+		return res.data.map((label) => {
 				return label.name;
 		})
 	} else {
@@ -186,7 +184,7 @@ export async function api_get_issue_details(octokit: Octokit, issue:Issue){
 			title: res.data.title,
 			body: res.data.body,
 			labels: res.data.labels.map((label: any) => {
-				return label.name;
+				return label.name!
 			}),
 			state: res.data.state,
 			updated_at: res.data.updated_at,
@@ -254,11 +252,11 @@ export async function api_get_issue_comments(octokit: Octokit, issue: Issue) {
 
 	if(res.status == 200){
 		//return the comments array as RepoComment[]
-		return res.data.map((comment: any) => {
+		return res.data.map((comment) => {
 			return {
 				body: comment.body,
-				login: comment.user.login,
-				avatar_url: comment.user.avatar_url,
+				login: comment.user?.login || "",
+				avatar_url: comment.user?.avatar_url || "",
 				created_at: comment.created_at,
 				update_at: comment.updated_at,
 				author_association: comment.author_association

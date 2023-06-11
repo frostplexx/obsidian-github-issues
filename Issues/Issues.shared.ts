@@ -7,6 +7,7 @@ import {Issue} from "./Issue";
  * @param view
  * @param arg
  * @param issues
+ * @return true if the issues were pasted, false otherwise
  */
 export function pasteIssues(view: MarkdownView | null, arg: string | RepoItem, issues: Issue[]) {
 	if (view) {

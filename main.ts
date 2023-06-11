@@ -2,13 +2,12 @@ import {App, Notice, Plugin, PluginSettingTab, setIcon, Setting} from 'obsidian'
 import {api_authenticate, RepoItem} from "./API/ApiHandler";
 import {IssuesModal} from "./Elements/Modals/IssuesModal";
 import {Octokit} from "@octokit/core";
-import {updateIssues} from "./Issues/IssueUpdater";
+import {softUpdateIssues, updateIssues} from "./Issues/IssueUpdater";
 import {NewIssueModal} from "./Elements/Modals/NewIssueModal";
 import {createCompactIssueElement, createDefaultIssueElement} from "./Elements/IssueItems";
 import {CSVIssue, Issue} from "./Issues/Issue";
 // @ts-ignore
-import { messages } from "./Messages/Errors.json";
-import "./Messages/Errors.json";
+import {errors} from "./Messages/Errors";
 //enum for the appearance of the issues when pasted into the editor
 export enum IssueAppearance {
 	DEFAULT = "default",
@@ -28,15 +27,17 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
-	octokit : Octokit | null = null;
+	octokit : Octokit = new Octokit({auth: ""});
 	async onload() {
 		await this.loadSettings();
+		// This adds a settings tab so the user can configure various aspects of the plugin
+		this.addSettingTab(new GithubIssuesSettings(this.app, this));
 
 		if (this.settings.password == "" || this.settings.username == ""){
 			new Notice("Please enter your username and password in the settings.")
 		} else {
 			try {
-				this.octokit = await api_authenticate(this.settings.password);
+				this.octokit = await api_authenticate(this.settings.password) ? new Octokit({auth: this.settings.password}) : new Octokit({auth: ""});
 				if (!this.octokit){
 					new Notice("Authentication failed. Please check your credentials.")
 				}
@@ -44,8 +45,14 @@ export default class MyPlugin extends Plugin {
 				new Notice("Authentication failed. Please check your credentials.")
 			}
 		}
+
+
 		//register markdown post processor
-		this.registerMarkdownCodeBlockProcessor("github-issues", (source, el, ctx ) => {
+		this.registerMarkdownCodeBlockProcessor("github-issues", (source, el) => {
+
+			//backgroundupdate the issues
+			softUpdateIssues(this.app, this.octokit)
+
 			const rows = source.split("\n").filter((row) => row.length > 0);
 			const repoName = rows[0].split("/")[1]
 			const owner = rows[0].split("/")[0]
@@ -67,7 +74,7 @@ export default class MyPlugin extends Plugin {
 			//add a refresh button
 			const refreshButton = el.createEl("button" )
 			refreshButton.addEventListener("click", () => {
-				updateIssues(this.app, this.octokit!)
+				softUpdateIssues(this.app, this.octokit)
 			});
 			setIcon(refreshButton, "sync")
 			refreshButton.style.backgroundColor = "inherit";
@@ -107,10 +114,10 @@ export default class MyPlugin extends Plugin {
 
 				switch (this.settings.issue_appearance) {
 					case IssueAppearance.DEFAULT:
-						createDefaultIssueElement(el,issue, this.octokit!, app);
+						createDefaultIssueElement(el,issue, this.octokit, app);
 				break;
 			case IssueAppearance.COMPACT:
-				createCompactIssueElement(el, issue, this.octokit!, app);
+				createCompactIssueElement(el, issue, this.octokit, app);
 				break;
 			}
 		});
@@ -140,20 +147,20 @@ export default class MyPlugin extends Plugin {
 						plugin_settings: this.settings
 					} as OctoBundle).open();
 				} else {
-					new Notice(messages.noCreds);
+					new Notice(errors.noCreds);
 				}
 			}
 		});
 
 		this.addCommand({
 			id: 'update-issues',
-			name: 'Update Issues',
+			name: 'Force-update Issues',
 			callback: () => {
 				if(this.octokit){
 					new Notice("Updating issues...")
-					updateIssues(this.app, this.octokit!)
+					updateIssues(this.app, this.octokit)
 				} else {
-					new Notice(messages.noCreds);
+					new Notice(errors.noCreds);
 				}
 			}
 		})
@@ -163,9 +170,9 @@ export default class MyPlugin extends Plugin {
 			name: "Create new Issue",
 			callback: () => {
 				if(this.octokit){
-					new NewIssueModal(this.app, {octokit: this.octokit!, plugin_settings: this.settings} as OctoBundle).open()
+					new NewIssueModal(this.app, {octokit: this.octokit, plugin_settings: this.settings} as OctoBundle).open()
 				} else {
-					new Notice(messages.noCreds);
+					new Notice(errors.noCreds);
 				}
 			}
 		})
@@ -191,17 +198,16 @@ export default class MyPlugin extends Plugin {
 		// 	}
 		// });
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new GithubIssuesSettings(this.app, this));
+
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
+		// this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
+		// 	console.log('click', evt);
+		// });
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		// this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
 
 	onunload() {
@@ -266,7 +272,7 @@ class GithubIssuesSettings extends PluginSettingTab {
 					console.log('Username: ' + value);
 					this.plugin.settings.username = value;
 					await this.plugin.saveSettings();
-					this.plugin.octokit = await api_authenticate(this.plugin.settings.username);
+					this.plugin.octokit = await api_authenticate(this.plugin.settings.password) ? new Octokit({auth: this.plugin.settings.password}) : new Octokit({});
 					if (this.plugin.octokit && this.plugin.settings.password) {
 						new Notice("Successfully authenticated!")
 					}
@@ -284,7 +290,7 @@ class GithubIssuesSettings extends PluginSettingTab {
 					this.plugin.settings.password = value;
 					await this.plugin.saveSettings()
 					//trigger reauthentication
-					this.plugin.octokit = await api_authenticate(this.plugin.settings.password);
+					this.plugin.octokit = await api_authenticate(this.plugin.settings.password) ? new Octokit({auth: this.plugin.settings.password}) : new Octokit({});
 					if (this.plugin.octokit && this.plugin.settings.username){
 						new Notice("Successfully authenticated!")
 					}
@@ -302,7 +308,6 @@ class GithubIssuesSettings extends PluginSettingTab {
 					console.log("Appearance: " + value)
 					this.plugin.settings.issue_appearance = value;
 					await this.plugin.saveSettings()
-
 					//TODO trigger a rerender of the issues
 				}));
 	}

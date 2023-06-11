@@ -7,7 +7,6 @@ import {
 	api_comment_on_issue,
 	api_get_issue_comments,
 	api_get_issue_details,
-	api_submit_issue,
 	api_update_issue
 } from "../../API/ApiHandler";
 import {updateIssues} from "../../Issues/IssueUpdater";
