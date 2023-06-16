@@ -29,12 +29,12 @@ export class NewIssueModal extends Modal {
 		if (repo()) {
 
 			const {contentEl} = this
-			contentEl.createEl('h2', {text: 'New Issue'})
+			contentEl.createEl('h2', {text: 'New Issue in: ' + repo()!.owner + "/" + repo()!.name})
 			const spinner = loadingSpinner();
 			contentEl.appendChild(spinner);
 			//get the labels
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const labels = await api_get_labels(this.ocotoBundle.octokit, repo()!);
+			const labels = (await api_get_labels(this.ocotoBundle.octokit, repo()!)).map(label => label.name);
 
 			spinner.remove();
 			//title input field
