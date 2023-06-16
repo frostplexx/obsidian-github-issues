@@ -65,7 +65,7 @@ export class IssuesModal extends Modal {
 		const loadingEl = loadingSpinner();
 		contentEl.appendChild(loadingEl);
 
-		api_get_repos(this.octobundle.octokit, this.octobundle.plugin_settings.username).then((repos) => {
+		api_get_repos(this.octobundle.octokit).then((repos) => {
 			loadingEl.remove();
 			//create a list of clickable repo names
 			const listEl = contentEl.createEl('ul');

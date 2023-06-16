@@ -16,9 +16,14 @@ export function pasteIssues(view: MarkdownView | null, arg: string | RepoItem, i
 		//insert text to detect where issues start
 		editor.replaceSelection("```github-issues\n")
 		editor.replaceSelection(parseArgToAuthorAndRepoName(arg) + "\n");
+
+		//make the labels into a string divided by ";" of type [labelname}#FFFFF
 		//insert the issues as a new list
 		for (const issue of issues) {
-			editor.replaceSelection(`${issue.number},${issue.title},${issue.author},${issue.created_at}\n`);
+			const stringifyLabels = issue.labels.map((label) => {
+				return `${label.name}#${label.color}`;
+			}).join(";");
+			editor.replaceSelection(`${issue.number},${issue.title},${issue.author},${issue.created_at},${stringifyLabels}\n`);
 		}
 
 		//insert text to detect where issues stop

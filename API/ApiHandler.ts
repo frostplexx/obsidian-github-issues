@@ -64,7 +64,10 @@ export async function api_get_labels(octokit: Octokit, repo: RepoItem): Promise<
 
 	if(res.status == 200){
 		return res.data.map((label) => {
-				return label.name;
+				return {
+					name: label.name,
+					color: label.color
+				};
 		})
 	} else {
 		return [];
@@ -116,13 +119,18 @@ export async function api_get_issues_by_url(octokit: Octokit, url: string): Prom
 
 		if(res.status == 200){
 			for (const issue of res.data) {
-				issues.push({
-					title: issue.title,
-					number: issue.number,
-					author: issue.user?.login,
-					description: issue.body,
-					created_at: issue.created_at,
-				} as Issue);
+				issues.push( new Issue(
+					issue.title,
+					issue.body ?? "",
+					issue.user?.login ?? "",
+					issue.number,
+					issue.created_at,
+					issue.labels.map((label: any) => {
+					return {
+						name: label.name,
+						color: label.color
+					} as Label ?? [];
+				})));
 			}
 
 			return issues;
@@ -153,18 +161,26 @@ export async function api_get_own_issues(octokit: Octokit, repo: RepoItem): Prom
 		}
 	})
 
-	console.log(res.data);
+	if(res.status == 200){
+		for (const issue of res.data) {
+			issues.push( new Issue(
+				issue.title,
+				issue.body ?? "",
+				issue.user?.login ?? "",
+				issue.number,
+				issue.created_at,
+				issue.labels.map((label: any) => {
+					return {
+						name: label.name,
+						color: label.color
+					} as Label ?? [];
+				})));
+		}
 
-	for (const issue of res.data) {
-		issues.push({
-			title: issue.title,
-			number: issue.number,
-			author: issue.user?.login,
-			description: issue.body,
-			created_at: issue.created_at,
-		} as Issue);
+		return issues;
+	} else {
+		return [];
 	}
-	return issues;
 }
 
 export async function api_get_issue_details(octokit: Octokit, issue:Issue){
@@ -184,7 +200,10 @@ export async function api_get_issue_details(octokit: Octokit, issue:Issue){
 			title: res.data.title,
 			body: res.data.body,
 			labels: res.data.labels.map((label: any) => {
-				return label.name!
+				return {
+					name: label.name ?? "",
+					color: label.color ?? ""
+				}
 			}),
 			state: res.data.state,
 			updated_at: res.data.updated_at,
@@ -289,11 +308,16 @@ export interface RepoItem {
 export interface RepoDetails {
 	title: string;
 	body: string;
-	labels: string[];
+	labels: Label[];
 	state: string;
 	updated_at: string;
 	assignee: Assignee;
 	comments: number;
+}
+
+export  interface Label {
+	name: string;
+	color: string;
 }
 
 export interface Assignee {

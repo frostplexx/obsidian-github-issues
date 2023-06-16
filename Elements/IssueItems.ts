@@ -3,6 +3,8 @@ import {getPasteableTimeDelta} from "../Utils/Utils";
 import {IssuesDetailsModal} from "./Modals/IssuesDetailsModal";
 import {App} from "obsidian";
 import {Octokit} from "@octokit/core";
+import {isNullableType} from "@typescript-eslint/type-utils";
+import {getTextColor} from "../Utils/Color.utils";
 
 /*
  * Creates a default issue element
@@ -18,7 +20,7 @@ export function createDefaultIssueElement(el: HTMLElement, issue: Issue, ocotoki
 	container.style.padding = "0";
 	container.style.margin = "0";
 	container.style.marginBottom = "5px";
-	container.style.marginTop = "5px";
+	container.style.marginTop = "7px";
 	container.style.boxShadow = "var(--embed-block-shadow-hover)";
 	container.style.borderRadius = "var(--radius-s)";
 	container.style.width = "80%";
@@ -26,10 +28,13 @@ export function createDefaultIssueElement(el: HTMLElement, issue: Issue, ocotoki
 	container.style.textOverflow = "ellipsis";
 	container.style.whiteSpace = "nowrap";
 
-
-	const title = container.createEl("h3", {text: issue.title});
+	const title = container.createEl("h5", {text: issue.title});
 	title.style.margin = "0";
-	title.style.marginLeft = "5px";
+	title.style.display = "flex";
+	title.style.flexDirection = "row";
+	title.style.alignItems = "center";
+	title.style.marginLeft = "7px";
+	title.style.marginTop = "7px";
 	title.style.padding = "0";
 	title.style.textOverflow = "ellipsis";
 	title.style.whiteSpace = "nowrap";
@@ -37,12 +42,30 @@ export function createDefaultIssueElement(el: HTMLElement, issue: Issue, ocotoki
 
 
 	const details = container.createDiv({cls: "issue-details"});
+	details.style.padding = "0";
+	details.style.margin = "0";
+	details.style.display = "flex";
+	details.style.flexDirection = "row";
+	details.style.alignItems = "top"
 	const detailsText = details.createEl("span", {text: `#${issue.number} opened ${getPasteableTimeDelta(issue.created_at)} by ${issue.author}`});
 	detailsText.style.margin = "0";
-	detailsText.style.marginLeft = "5px";
+	detailsText.style.fontSize = "14px";
+	detailsText.style.marginLeft = "7px";
+	detailsText.style.marginBottom = "7px";
 	detailsText.style.padding = "0";
 	detailsText.style.opacity = "0.7"
 
+	issue.labels.forEach(label => {
+		const labelEl = title.createDiv({cls: "label"});
+		labelEl.style.backgroundColor = `#${label.color}`;
+		labelEl.style.color = getTextColor(label.color);
+		labelEl.style.padding = "2px";
+		labelEl.style.margin = "2px";
+		labelEl.style.borderRadius = "var(--radius-s)";
+		labelEl.style.fontSize = "10px";
+		labelEl.style.opacity = "0.8";
+		labelEl.innerText = label.name;
+	})
 
 	container.addEventListener("mouseenter", () => {
 		container.style.opacity = "0.7";

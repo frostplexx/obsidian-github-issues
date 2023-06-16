@@ -10,6 +10,7 @@ import {
 	api_update_issue
 } from "../../API/ApiHandler";
 import {updateIssues} from "../../Issues/IssueUpdater";
+import {getTextColor} from "../../Utils/Color.utils";
 
 /**
  * Modal for seeing the issue details
@@ -28,7 +29,6 @@ export class IssuesDetailsModal extends Modal {
 		const title = contentEl.createEl("h2", {text: this.issue.title + " • #" + this.issue.number});
 		title.style.margin = "0";
 
-
 		const authorAndSutff = contentEl.createSpan({
 			text: `Created by ${this.issue.author} ${getPasteableTimeDelta(this.issue.created_at)}`
 		});
@@ -37,6 +37,11 @@ export class IssuesDetailsModal extends Modal {
 		authorAndSutff.style.padding = "0";
 		authorAndSutff.style.opacity = "0.7";
 
+		contentEl.createEl("br");
+		const issueLink = contentEl.createEl("a", {text: "View on GitHub"});
+		issueLink.setAttribute("href", "https://github.com/" + this.issue.repo?.owner + "/" + this.issue.repo?.name + "/issues/" + this.issue.number);
+		issueLink.style.fontSize = "0.8em";
+		issueLink.style.opacity = "0.7";
 		const spinner = loadingSpinner();
 		contentEl.appendChild(spinner);
 
@@ -93,12 +98,13 @@ export class IssuesDetailsModal extends Modal {
 				labelPill.style.alignItems = "center";
 				labelPill.style.justifyContent = "center";
 				labelPill.style.padding = "5px";
-				labelPill.style.backgroundColor = "var(--interactive-accent)";
+				labelPill.style.background = "#" + label.color;
 				labelPill.style.borderRadius = "10px";
 				labelPill.style.margin = "0";
 
-				const labelName = labelPill.createEl("span", {text: label});
+				const labelName = labelPill.createEl("span", {text: label.name});
 				labelName.style.margin = "0";
+				labelName.style.color = getTextColor(label.color);
 			}
 		}
 

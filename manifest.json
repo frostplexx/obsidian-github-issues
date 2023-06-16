@@ -1,11 +1,11 @@
 {
 	"id": "obsidian-github-issues",
 	"name": "Github Issues",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"minAppVersion": "0.15.0",
 	"description": "A plugin to view and edit Github issues in Obsidian. Uses the Github API to fetch issues and comments.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"author": "Frostplexx",
+	"authorUrl": "https://github.com/Frostplexx",
+	"fundingUrl": "https://ko-fi.com/frostplexx",
 	"isDesktopOnly": false
 }

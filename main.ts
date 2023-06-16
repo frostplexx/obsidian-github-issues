@@ -71,6 +71,7 @@ export default class MyPlugin extends Plugin {
 			el.style.justifyContent = "center";
 
 
+
 			//add a refresh button
 			const refreshButton = el.createEl("button" )
 			refreshButton.addEventListener("click", () => {
@@ -91,6 +92,9 @@ export default class MyPlugin extends Plugin {
 			refreshButton.style.position = "absolute"
 			refreshButton.style.left = "3px"
 			refreshButton.style.top = "3px"
+
+			//add search field to filter issues by tags
+
 
 			refreshButton.addEventListener("mouseenter", () => {
 				refreshButton.style.background = "var(--background-modifier-hover)"
