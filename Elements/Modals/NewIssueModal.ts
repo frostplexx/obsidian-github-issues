@@ -65,9 +65,6 @@ export class NewIssueModal extends Modal {
 			selectedLabels.style.display = 'flex'
 			selectedLabels.style.flexWrap = 'wrap'
 
-
-
-
 			//dropdown where you can select multiple labels
 			const labelDropdown = contentEl.createEl('select')
 			labelDropdown.style.width = '100%'

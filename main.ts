@@ -8,11 +8,13 @@ import {createCompactIssueElement, createDefaultIssueElement} from "./Elements/I
 import {CSVIssue, Issue} from "./Issues/Issue";
 // @ts-ignore
 import {errors} from "./Messages/Errors";
+
 //enum for the appearance of the issues when pasted into the editor
 export enum IssueAppearance {
 	DEFAULT = "default",
 	COMPACT = "compact"
 }
+
 interface MyPluginSettings {
 	username: string;
 	password: string
@@ -27,18 +29,19 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
-	octokit : Octokit = new Octokit({auth: ""});
+	octokit: Octokit = new Octokit({auth: ""});
+
 	async onload() {
 		await this.loadSettings();
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new GithubIssuesSettings(this.app, this));
 
-		if (this.settings.password == "" || this.settings.username == ""){
+		if (this.settings.password == "" || this.settings.username == "") {
 			new Notice("Please enter your username and password in the settings.")
 		} else {
 			try {
 				this.octokit = await api_authenticate(this.settings.password) ? new Octokit({auth: this.settings.password}) : new Octokit({auth: ""});
-				if (!this.octokit){
+				if (!this.octokit) {
 					new Notice("Authentication failed. Please check your credentials.")
 				}
 			} catch (e) {
@@ -71,9 +74,8 @@ export default class MyPlugin extends Plugin {
 			el.style.justifyContent = "center";
 
 
-
 			//add a refresh button
-			const refreshButton = el.createEl("button" )
+			const refreshButton = el.createEl("button")
 			refreshButton.addEventListener("click", () => {
 				softUpdateIssues(this.app, this.octokit)
 			});
@@ -93,8 +95,32 @@ export default class MyPlugin extends Plugin {
 			refreshButton.style.left = "3px"
 			refreshButton.style.top = "3px"
 
-			//add search field to filter issues by tags
+			const searchfield = el.createEl("input")
+			searchfield.setAttribute("type", "text")
+			searchfield.setAttribute("placeholder", "Search Titles, Labels,...")
+			searchfield.style.backgroundColor = "inherit";
+			searchfield.style.width = "80%"
+			searchfield.style.marginTop = "10px"
+			searchfield.style.height = "30px"
+			searchfield.style.boxShadow = 'none'
+			searchfield.style.padding = '10px'
+			searchfield.style.alignItems = 'center'
+			searchfield.style.justifyContent = 'center'
+			searchfield.style.cursor = "pointer"
 
+			searchfield.addEventListener("input", () => {
+				//go through the children of "el" and hide all that don't match the search if the search is empty show all
+				const search = searchfield.value.toLowerCase()
+				el.childNodes.forEach((child) => {
+					if(child instanceof HTMLElement){
+						if(child.innerText.toLowerCase().includes(search)){
+							child.style.display = "flex"
+						} else if (child !== refreshButton && child !== searchfield){
+							child.style.display = "none"
+						}
+					}
+				})
+			});
 
 			refreshButton.addEventListener("mouseenter", () => {
 				refreshButton.style.background = "var(--background-modifier-hover)"
@@ -119,13 +145,13 @@ export default class MyPlugin extends Plugin {
 				switch (this.settings.issue_appearance) {
 					case IssueAppearance.DEFAULT:
 						createDefaultIssueElement(el,issue, this.octokit, app);
-				break;
-			case IssueAppearance.COMPACT:
-				createCompactIssueElement(el, issue, this.octokit, app);
-				break;
-			}
-		});
-	})
+						break;
+					case IssueAppearance.COMPACT:
+						createCompactIssueElement(el, issue, this.octokit, app);
+						break;
+				}});
+
+		})
 
 		// // This creates an icon in the left ribbon.
 		// const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
