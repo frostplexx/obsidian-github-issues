@@ -2,7 +2,7 @@ import {App, Notice, Plugin, PluginSettingTab, setIcon, Setting} from 'obsidian'
 import {api_authenticate, RepoItem} from "./API/ApiHandler";
 import {IssuesModal} from "./Elements/Modals/IssuesModal";
 import {Octokit} from "@octokit/core";
-import {softUpdateIssues, updateIssues} from "./Issues/IssueUpdater";
+import {getRepoInFile, softUpdateIssues, updateIssues} from "./Issues/IssueUpdater";
 import {NewIssueModal} from "./Elements/Modals/NewIssueModal";
 import {createCompactIssueElement, createDefaultIssueElement} from "./Elements/IssueItems";
 import {CSVIssue, Issue} from "./Issues/Issue";
@@ -175,10 +175,16 @@ export default class MyPlugin extends Plugin {
 			name: 'Embed open Issues',
 			callback: () => {
 				if (this.octokit){
-					new IssuesModal(this.app, {
-						octokit: this.octokit,
-						plugin_settings: this.settings
-					} as OctoBundle).open();
+					//check if repo already exists in file
+					const repo = getRepoInFile(this.app)
+					if(repo){
+						new Notice("Only one repo per file is supported at the moment! Current repo:" + repo.name + "/" + repo.repo)
+					} else {
+						new IssuesModal(this.app, {
+							octokit: this.octokit,
+							plugin_settings: this.settings
+						} as OctoBundle).open();
+					}
 				} else {
 					new Notice(errors.noCreds);
 				}
@@ -288,10 +294,10 @@ class GithubIssuesSettings extends PluginSettingTab {
 		containerEl.createEl('h2', {text: 'Github Authentication'});
 
 		containerEl.createSpan({
-			text: "For authenticating you need to provide your Github Username and a Personal Authentication Token. You can create a new token "
+			text: "To use this plugin, you need to create a personal access token. You can find a guide on how to do that in the "
 		}).createEl('a', {
-			text: "here.",
-			href: "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token"
+			text: "README.",
+			href: "https://github.com/Frostplexx/obsidian-github-issues#prerequisites"
 		})
 
 		// username
