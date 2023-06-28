@@ -9,6 +9,26 @@ Obsidian GitHub Issues is a plugin for the Obsidian note-taking app that enables
 - **Rich Preview:** View a comprehensive preview of the embedded issues, including their status, comments, assignees, labels, and other relevant details. This feature helps you quickly gain context and stay informed about the progress of your issues.
 
 ## Installation
+
+### Prerequisites
+Before installing the Obsidian GitHub Issues plugin, you need to generate a Personal Access Token (PAT) for your GitHub account. This token is used to authenticate your Obsidian app with GitHub and enable the plugin to access your GitHub repositories. To generate a PAT, follow these steps:
+
+- Navigate to your GitHub account settings.
+- Click on the "Developer Settings" tab.
+- Select "Personal Access Tokens" from the sidebar.
+- Click on the "Generate New Token (classic)" button.
+- Give it a name and an expiration date.
+- The token needs the following permissions:
+  - If you want to use the plugin with public and private repositories, you need to select the following permissions: 
+    - repo (Full control of private repositories)
+  - If you only want to use the plugin with public repositories, you need to select the following permissions:
+    - public_repo (Access public repositories)
+- Click on the "Generate Token" button.
+- Copy the generated token and save it somewhere safe.
+- **Note:** This token is only displayed once. If you lose it, you will have to generate a new one.
+
+### Install from Obsidian
+
 To install the Obsidian GitHub Issues plugin, follow these steps:
 
 - Open Obsidian and navigate to the "Community Plugins" section in the settings.
@@ -17,4 +37,11 @@ To install the Obsidian GitHub Issues plugin, follow these steps:
 - Click the "Install" button next to the plugin name.
 - Once the installation is complete, open the plugin settings and enter your GitHub Username and Personal Access Token
 
+### Install from GitHub
 
+To install the Obsidian GitHub Issues plugin from GitHub, follow these steps:
+
+- Download the latest release of the plugin from the GitHub repository
+- Extract the contents of the zip file into your Obsidian vault's plugins folder.
+- Open the plugin settings and enter your GitHub Username and Personal Access Token
+- Reload Obsidian to activate the plugin.

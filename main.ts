@@ -19,12 +19,14 @@ interface MyPluginSettings {
 	username: string;
 	password: string
 	issue_appearance: IssueAppearance;
+	show_searchbar: boolean;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	username: '',
 	password: '',
-	issue_appearance: IssueAppearance.DEFAULT
+	issue_appearance: IssueAppearance.DEFAULT,
+	show_searchbar: true
 }
 
 export default class MyPlugin extends Plugin {
@@ -95,32 +97,33 @@ export default class MyPlugin extends Plugin {
 			refreshButton.style.left = "3px"
 			refreshButton.style.top = "3px"
 
-			const searchfield = el.createEl("input")
-			searchfield.setAttribute("type", "text")
-			searchfield.setAttribute("placeholder", "Search Titles, Labels,...")
-			searchfield.style.backgroundColor = "inherit";
-			searchfield.style.width = "80%"
-			searchfield.style.marginTop = "10px"
-			searchfield.style.height = "30px"
-			searchfield.style.boxShadow = 'none'
-			searchfield.style.padding = '10px'
-			searchfield.style.alignItems = 'center'
-			searchfield.style.justifyContent = 'center'
-			searchfield.style.cursor = "pointer"
+			if(this.settings.show_searchbar) {
+				const searchfield = el.createEl("input")
+				searchfield.setAttribute("type", "text")
+				searchfield.setAttribute("placeholder", "Search Titles, Labels,...")
+				searchfield.style.backgroundColor = "inherit";
+				searchfield.style.width = "80%"
+				searchfield.style.marginTop = "10px"
+				searchfield.style.height = "30px"
+				searchfield.style.boxShadow = 'none'
+				searchfield.style.padding = '10px'
+				searchfield.style.alignItems = 'center'
+				searchfield.style.justifyContent = 'center'
 
-			searchfield.addEventListener("input", () => {
-				//go through the children of "el" and hide all that don't match the search if the search is empty show all
-				const search = searchfield.value.toLowerCase()
-				el.childNodes.forEach((child) => {
-					if(child instanceof HTMLElement){
-						if(child.innerText.toLowerCase().includes(search)){
-							child.style.display = "flex"
-						} else if (child !== refreshButton && child !== searchfield){
-							child.style.display = "none"
+				searchfield.addEventListener("input", () => {
+					//go through the children of "el" and hide all that don't match the search if the search is empty show all
+					const search = searchfield.value.toLowerCase()
+					el.childNodes.forEach((child) => {
+						if (child instanceof HTMLElement) {
+							if (child.innerText.toLowerCase().includes(search)) {
+								child.style.display = "flex"
+							} else if (child !== refreshButton && child !== searchfield) {
+								child.style.display = "none"
+							}
 						}
-					}
-				})
-			});
+					})
+				});	searchfield.style.cursor = "pointer"
+			}
 
 			refreshButton.addEventListener("mouseenter", () => {
 				refreshButton.style.background = "var(--background-modifier-hover)"
@@ -333,12 +336,24 @@ class GithubIssuesSettings extends PluginSettingTab {
 			.addDropdown(dropdown => dropdown
 				.addOption(IssueAppearance.DEFAULT, "Default")
 				.addOption(IssueAppearance.COMPACT, "Compact")
-				.setValue("default")
+				.setValue(this.plugin.settings.issue_appearance)
 				.onChange(async (value: IssueAppearance) => {
 					console.log("Appearance: " + value)
 					this.plugin.settings.issue_appearance = value;
 					await this.plugin.saveSettings()
 					//TODO trigger a rerender of the issues
+				}));
+		new Setting(containerEl)
+			.setName("Show Searchbar")
+			.setDesc("Show a searchbar above the issues in the embed.")
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.show_searchbar)
+				.onChange(async (value) => {
+					console.log("Show Searchbar: " + value)
+					this.plugin.settings.show_searchbar = value;
+					await this.plugin.saveSettings()
+					//TODO trigger a rerender of the issues
+
 				}));
 	}
 }
