@@ -177,8 +177,8 @@ export default class MyPlugin extends Plugin {
 				if (this.octokit){
 					//check if repo already exists in file
 					const repo = getRepoInFile(this.app)
-					if(repo){
-						new Notice("Only one repo per file is supported at the moment! Current repo:" + repo.name + "/" + repo.repo)
+					if(repo?.repo != undefined ||repo?.name != "repo"){
+						new Notice("Only one repo per file is supported at the moment! Current repo:" + repo!.name + "/" + repo!.repo)
 					} else {
 						new IssuesModal(this.app, {
 							octokit: this.octokit,

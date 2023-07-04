@@ -41,7 +41,7 @@ To install the Obsidian GitHub Issues plugin, follow these steps:
 
 To install the Obsidian GitHub Issues plugin from GitHub, follow these steps:
 
-- Download the latest release of the plugin from the GitHub repository
+- Download the latest release of the plugin from the releases page (Its the file with the .zip ending).
 - Extract the contents of the zip file into your Obsidian vault's plugins folder.
 - Open the plugin settings and enter your GitHub Username and Personal Access Token
 - Reload Obsidian to activate the plugin.
