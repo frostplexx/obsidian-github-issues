@@ -1,3 +1,8 @@
+# Note
+<p align="center">
+This plugin is still under development and contains bugs!
+</p>
+
 # Obsidian GitHub Issues
 Obsidian GitHub Issues is a plugin for the Obsidian note-taking app that enables users to seamlessly integrate GitHub issues into their notes. With this plugin, you can embed existing GitHub issues into your Obsidian notes and create new issues or edit existing ones directly from within Obsidian.
 
@@ -26,16 +31,6 @@ Before installing the Obsidian GitHub Issues plugin, you need to generate a Pers
 - Click on the "Generate Token" button.
 - Copy the generated token and save it somewhere safe.
 - **Note:** This token is only displayed once. If you lose it, you will have to generate a new one.
-
-### Install from Obsidian
-
-To install the Obsidian GitHub Issues plugin, follow these steps:
-
-- Open Obsidian and navigate to the "Community Plugins" section in the settings.
-- Ensure that you have enabled third-party plugins.
-- Search for "Obsidian GitHub Issues" in the plugin marketplace.
-- Click the "Install" button next to the plugin name.
-- Once the installation is complete, open the plugin settings and enter your GitHub Username and Personal Access Token
 
 ### Install from GitHub
 
