@@ -3,7 +3,6 @@ import {getPasteableTimeDelta} from "../Utils/Utils";
 import {IssuesDetailsModal} from "./Modals/IssuesDetailsModal";
 import {App} from "obsidian";
 import {Octokit} from "@octokit/core";
-import {isNullableType} from "@typescript-eslint/type-utils";
 import {getTextColor} from "../Utils/Color.utils";
 
 /*

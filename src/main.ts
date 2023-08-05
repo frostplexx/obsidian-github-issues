@@ -2,7 +2,7 @@ import {App, Notice, Plugin, PluginSettingTab, Setting} from 'obsidian';
 import {api_authenticate, api_get_issues_by_id, api_get_own_issues, RepoItem} from "./API/ApiHandler";
 import {IssuesModal} from "./Elements/Modals/IssuesModal";
 import {Octokit} from "@octokit/core";
-import {getRepoInFile, updateIssues} from "./Issues/IssueUpdater";
+import {updateIssues} from "./Issues/IssueUpdater";
 import {NewIssueModal} from "./Elements/Modals/NewIssueModal";
 import {createCompactIssueElement, createDefaultIssueElement} from "./Elements/IssueItems";
 import {Issue} from "./Issues/Issue";
