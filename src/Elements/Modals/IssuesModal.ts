@@ -2,8 +2,8 @@ import {App, Modal} from "obsidian";
 import {api_get_repos, RepoItem} from "../../API/ApiHandler";
 import {OctoBundle} from "../../main";
 import {calculateHumanDate} from "../../Utils/Utils";
-import {insertIssues} from "../../Issues/IssueCreator";
 import {loadingSpinner} from "../../Utils/Loader";
+import {pasteRepoName} from "../../Issues/Issues.shared";
 
 /*
 * Modal for choosing and inserting issues
@@ -34,7 +34,7 @@ export class IssuesModal extends Modal {
 		urlButton.style.padding = '5px';
 		urlButton.style.marginBottom = '10px';
 		urlButton.addEventListener('click', () => {
-			insertIssues(this.app, this.octobundle, urlInput.value);
+			pasteRepoName(this.app, urlInput.value)
 			this.close();
 		});
 
@@ -81,7 +81,7 @@ export class IssuesModal extends Modal {
 			for (const repo of repos) {
 				const itemEl = repoItem(repo);
 				itemEl.addEventListener('click', () => {
-					insertIssues(this.app, this.octobundle, repo);
+					pasteRepoName(this.app, repo)
 					this.close();
 				});
 				listEl.appendChild(itemEl);

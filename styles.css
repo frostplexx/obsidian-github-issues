@@ -1,8 +1,15 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+#refreshbutton {
+	background-color: inherit;
+	border: none;
+	outline: none;
+	box-shadow: none;
+	padding: 10px;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	cursor: pointer;
+	position: absolute;
+	left: 3px;
+	top: 3px;
+}

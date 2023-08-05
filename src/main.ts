@@ -1,13 +1,14 @@
-import {App, Notice, Plugin, PluginSettingTab, setIcon, Setting} from 'obsidian';
-import {api_authenticate, RepoItem} from "./API/ApiHandler";
+import {App, Notice, Plugin, PluginSettingTab, Setting} from 'obsidian';
+import {api_authenticate, api_get_issues_by_id, api_get_own_issues, RepoItem} from "./API/ApiHandler";
 import {IssuesModal} from "./Elements/Modals/IssuesModal";
 import {Octokit} from "@octokit/core";
-import {getRepoInFile, softUpdateIssues, updateIssues} from "./Issues/IssueUpdater";
+import {getRepoInFile, updateIssues} from "./Issues/IssueUpdater";
 import {NewIssueModal} from "./Elements/Modals/NewIssueModal";
 import {createCompactIssueElement, createDefaultIssueElement} from "./Elements/IssueItems";
-import {CSVIssue, Issue} from "./Issues/Issue";
+import {Issue} from "./Issues/Issue";
 // @ts-ignore
 import {errors} from "./Messages/Errors";
+import {parseIssuesToEmbed} from "./Issues/Issues.shared";
 
 //enum for the appearance of the issues when pasted into the editor
 export enum IssueAppearance {
@@ -53,15 +54,15 @@ export default class MyPlugin extends Plugin {
 
 
 		//register markdown post processor
-		this.registerMarkdownCodeBlockProcessor("github-issues", (source, el) => {
-
-			//backgroundupdate the issues
-			softUpdateIssues(this.app, this.octokit)
+		this.registerMarkdownCodeBlockProcessor("github-issues", async (source, el) => {
 
 			const rows = source.split("\n").filter((row) => row.length > 0);
-			const repoName = rows[0].split("/")[1]
+			const repoName = rows[0].split("/")[1].split("#")[0]
 			const owner = rows[0].split("/")[0]
 
+
+			//parse if the user only wants to embed a single/some issues or all of them
+			const parsedIssues = parseIssuesToEmbed(rows[0]);
 			const repo: RepoItem = {
 				owner: owner,
 				name: repoName,
@@ -76,28 +77,7 @@ export default class MyPlugin extends Plugin {
 			el.style.justifyContent = "center";
 
 
-			//add a refresh button
-			const refreshButton = el.createEl("button")
-			refreshButton.addEventListener("click", () => {
-				softUpdateIssues(this.app, this.octokit)
-			});
-			setIcon(refreshButton, "sync")
-			refreshButton.style.backgroundColor = "inherit";
-			refreshButton.style.border = 'none'
-			refreshButton.style.outline = 'none'
-			refreshButton.style.boxShadow = 'none'
-			refreshButton.style.padding = '10px'
-			refreshButton.style.display = 'none'
-			refreshButton.style.alignItems = 'center'
-			refreshButton.style.justifyContent = 'center'
-			refreshButton.style.margin = '0'
-			refreshButton.style.cursor = "pointer"
-			//force the button to be on the left
-			refreshButton.style.position = "absolute"
-			refreshButton.style.left = "3px"
-			refreshButton.style.top = "3px"
-
-			if(this.settings.show_searchbar) {
+			if (this.settings.show_searchbar) {
 				const searchfield = el.createEl("input")
 				searchfield.setAttribute("type", "text")
 				searchfield.setAttribute("placeholder", "Search Titles, Labels,...")
@@ -117,34 +97,24 @@ export default class MyPlugin extends Plugin {
 						if (child instanceof HTMLElement) {
 							if (child.innerText.toLowerCase().includes(search)) {
 								child.style.display = "flex"
-							} else if (child !== refreshButton && child !== searchfield) {
+							} else if ( child !== searchfield) {
 								child.style.display = "none"
 							}
 						}
 					})
-				});	searchfield.style.cursor = "pointer"
+				});
+				searchfield.style.cursor = "pointer"
 			}
 
-			refreshButton.addEventListener("mouseenter", () => {
-				refreshButton.style.background = "var(--background-modifier-hover)"
-			});
 
-			refreshButton.addEventListener("mouseleave", () => {
-				refreshButton.style.background = "inherit"
-			});
+			let issues: Issue[] = []
+			if (parsedIssues.length != 0) {
+				issues = await  api_get_issues_by_id(this.octokit, repo, parsedIssues)
+			} else {
+				issues = await api_get_own_issues(this.octokit, repo);
+			}
 
-			//show the button when el is hovered
-			el.addEventListener("mouseenter", () => {
-				refreshButton.style.display = "flex"
-			})
-			el.addEventListener("mouseleave", () => {
-				refreshButton.style.display = "none"
-			})
-
-			rows.forEach((row, index) => {
-				if(index === 0) return;
-				const issue: Issue = new CSVIssue(row, repo);
-
+			issues.forEach((issue) => {
 				switch (this.settings.issue_appearance) {
 					case IssueAppearance.DEFAULT:
 						createDefaultIssueElement(el,issue, this.octokit, app);
@@ -153,21 +123,7 @@ export default class MyPlugin extends Plugin {
 						createCompactIssueElement(el, issue, this.octokit, app);
 						break;
 				}});
-
 		})
-
-		// // This creates an icon in the left ribbon.
-		// const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-		// 	// Called when the user clicks the icon.
-		// 	new Notice('This is a notice!');
-		// });
-		// Perform additional things with the ribbon
-		// ribbonIconEl.addClass('my-plugin-ribbon-class');
-
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		// const statusBarItemEl = this.addStatusBarItem();
-		// statusBarItemEl.setText('Status Bar Text');
-
 
 		//add issues of repo command
 		this.addCommand({
@@ -176,15 +132,10 @@ export default class MyPlugin extends Plugin {
 			callback: () => {
 				if (this.octokit){
 					//check if repo already exists in file
-					const repo = getRepoInFile(this.app)
-					if(repo?.repo != undefined ||repo?.name != "repo"){
-						new Notice("Only one repo per file is supported at the moment! Current repo:" + repo!.name + "/" + repo!.repo)
-					} else {
 						new IssuesModal(this.app, {
 							octokit: this.octokit,
 							plugin_settings: this.settings
 						} as OctoBundle).open();
-					}
 				} else {
 					new Notice(errors.noCreds);
 				}
@@ -215,38 +166,6 @@ export default class MyPlugin extends Plugin {
 				}
 			}
 		})
-
-
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		// this.addCommand({
-		// 	id: 'open-sample-modal-complex',
-		// 	name: 'Open sample modal (complex)',
-		// 	checkCallback: (checking: boolean) => {
-		// 		// Conditions to check
-		// 		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-		// 		if (markdownView) {
-		// 			// If checking is true, we're simply "checking" if the command can be run.
-		// 			// If checking is false, then we want to actually perform the operation.
-		// 			if (!checking) {
-		// 				new SampleModal(this.app).open();
-		// 			}
-		//
-		// 			// This command will only show up in Command Palette when the check function returns true
-		// 			return true;
-		// 		}
-		// 	}
-		// });
-
-
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		// this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-		// 	console.log('click', evt);
-		// });
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		// this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
 
 	onunload() {
@@ -262,22 +181,6 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-// class SampleModal extends Modal {
-// 	constructor(app: App) {
-// 		super(app);
-// 	}
-//
-// 	onOpen() {
-// 		const {contentEl} = this;
-// 		contentEl.setText('Woah!');
-// 	}
-//
-// 	onClose() {
-// 		const {contentEl} = this;
-// 		contentEl.empty();
-// 	}
-// }
-//
 class GithubIssuesSettings extends PluginSettingTab {
 	plugin: MyPlugin;
 

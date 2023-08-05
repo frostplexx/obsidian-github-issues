@@ -1,7 +1,7 @@
 import {App, Editor, MarkdownView, Notice} from "obsidian";
 import {api_get_issues_by_url, RepoItem} from "../API/ApiHandler";
 import {verifyURL} from "../Utils/Utils";
-import {pasteIssues} from "./Issues.shared";
+import {pasteRepoName} from "./Issues.shared";
 import {Octokit} from "@octokit/core";
 import {CSVIssue, Issue} from "./Issue";
 
@@ -53,7 +53,7 @@ function insertIssues(editor: Editor, repo: FileRepo, view: MarkdownView | null,
 	editor.setCursor({line: repo.start_line, ch: 0});
 
 	//insert the issues
-	const pasted = pasteIssues(view, url, issues);
+	const pasted = pasteRepoName(view, url, issues);
 	if (pasted) {
 		new Notice("Updated issues");
 	} else {
@@ -206,12 +206,16 @@ export function getRepoInFile(app: App) {
 		console.log(name);
 		console.log(repo);
 
-		return {
-			name: name,
-			repo: repo,
-			start_line: start_line,
-			end_line: end_line
-		} as FileRepo
+		if(repo != undefined){
+			return {
+				name: name,
+				repo: repo,
+				start_line: start_line,
+				end_line: end_line
+			} as FileRepo
+		} else {
+			return null
+		}
 	}
 	return null;
 }

@@ -174,13 +174,21 @@ export async function api_get_own_issues(octokit: Octokit, repo: RepoItem): Prom
 						name: label.name,
 						color: label.color
 					} as Label ?? [];
-				})));
+				}),
+				repo
+			));
 		}
 
 		return issues;
 	} else {
 		return [];
 	}
+}
+
+export async function api_get_issues_by_id(octokit: Octokit, repo: RepoItem, issueIDs: number[]): Promise<Issue[]> {
+	const iss = await api_get_own_issues(octokit, repo);
+	//filter the issues to only include the specified ones
+	return iss.filter(issue => issueIDs.includes(issue.number));
 }
 
 export async function api_get_issue_details(octokit: Octokit, issue:Issue){
