@@ -32,16 +32,12 @@ export class IssuesDetailsModal extends Modal {
 		const authorAndSutff = contentEl.createSpan({
 			text: `Created by ${this.issue.author} ${getPasteableTimeDelta(this.issue.created_at)}`
 		});
-		authorAndSutff.style.margin = "0";
-		authorAndSutff.style.marginTop = "5px";
-		authorAndSutff.style.padding = "0";
-		authorAndSutff.style.opacity = "0.7";
+		authorAndSutff.classList.add("issues-auhtor")
 
 		contentEl.createEl("br");
 		const issueLink = contentEl.createEl("a", {text: "View on GitHub"});
 		issueLink.setAttribute("href", "https://github.com/" + this.issue.repo?.owner + "/" + this.issue.repo?.name + "/issues/" + this.issue.number);
-		issueLink.style.fontSize = "0.8em";
-		issueLink.style.opacity = "0.7";
+		issueLink.classList.add("issue-link")
 		const spinner = loadingSpinner();
 		contentEl.appendChild(spinner);
 
@@ -54,20 +50,10 @@ export class IssuesDetailsModal extends Modal {
 		}
 
 		const stateAndLabelsContainer = contentEl.createDiv();
-		stateAndLabelsContainer.style.display = "flex";
-		stateAndLabelsContainer.style.flexDirection = "row";
-		stateAndLabelsContainer.style.alignItems = "start";
-		stateAndLabelsContainer.style.justifyContent = "start";
-		stateAndLabelsContainer.style.paddingTop = "10px";
+		stateAndLabelsContainer.classList.add("issues-state-and-label-container")
 
 		const statePill = stateAndLabelsContainer.createDiv();
-		statePill.style.display = "flex";
-		statePill.style.flexDirection = "row";
-		statePill.style.alignItems = "center";
-		statePill.style.justifyContent = "center";
-		statePill.style.padding = "5px";
-		statePill.style.borderRadius = "10px";
-		statePill.style.marginRight = "5px";
+		statePill.classList.add("issues-state-pill")
 		//make it green if state is open
 		if (details?.state === "open"){
 			statePill.style.backgroundColor = "rgba(31, 118, 41, 0.5)";
@@ -77,33 +63,20 @@ export class IssuesDetailsModal extends Modal {
 
 
 		const state = statePill.createEl("span", {text: details?.state});
-		state.style.margin = "0";
-		state.style.padding = "0";
+		state.classList.add("issues-state")
 
-		const lables = stateAndLabelsContainer.createDiv();
-		lables.style.display = "flex";
-		lables.style.flexDirection = "row";
-		lables.style.alignItems = "start";
-		lables.style.justifyContent = "start";
-		lables.style.gap = "5px";
-		lables.style.padding = "0";
-		lables.style.opacity = "0.7";
+		const labels = stateAndLabelsContainer.createDiv();
+		labels.classList.add("issues-labels")
 		if(details?.labels.length > 0){
 			//loop through the labels
 			// eslint-disable-next-line no-unsafe-optional-chaining
 			for (const label of details?.labels){
-				const labelPill = lables.createDiv();
-				labelPill.style.display = "flex";
-				labelPill.style.flexDirection = "row";
-				labelPill.style.alignItems = "center";
-				labelPill.style.justifyContent = "center";
-				labelPill.style.padding = "5px";
+				const labelPill = labels.createDiv();
+				labelPill.classList.add("issues-label-pill")
 				labelPill.style.background = "#" + label.color;
-				labelPill.style.borderRadius = "10px";
-				labelPill.style.margin = "0";
 
 				const labelName = labelPill.createEl("span", {text: label.name});
-				labelName.style.margin = "0";
+				labelName.classList.add("issues-label-name")
 				labelName.style.color = getTextColor(label.color);
 			}
 		}
@@ -112,54 +85,28 @@ export class IssuesDetailsModal extends Modal {
 
 		if (details.assignee.login != undefined){
 			const assigneeContainer = contentEl.createDiv();
-			assigneeContainer.style.display = "flex";
-			assigneeContainer.style.flexDirection = "row";
-			assigneeContainer.style.alignItems = "start";
-			assigneeContainer.style.justifyContent = "start";
-			assigneeContainer.style.paddingTop = "20px";
-
+			assigneeContainer.classList.add("issues-asignee-container")
 
 			//assignee icon
 			const assigneeIcon = assigneeContainer.createEl("img");
+			assigneeIcon.classList.add("issues-assignee-icon")
 			assigneeIcon.src = details?.assignee.avatar_url;
-			assigneeIcon.style.width = "20px";
-			assigneeIcon.style.height = "20px";
-			assigneeIcon.style.borderRadius = "50%";
-			assigneeIcon.style.margin = "0";
-			assigneeIcon.style.marginTop = "5px";
-			assigneeIcon.style.marginInlineEnd = "5px";
-			assigneeIcon.style.padding = "0";
 
 			//asignee login
-			const asignee = assigneeContainer.createSpan({
+			const assignee = assigneeContainer.createSpan({
 				text: `Assigned to ${details?.assignee.login}`
 			});
-			asignee.style.margin = "0";
-			asignee.style.marginTop = "5px"
+			assignee.classList.add("issues-assignee")
 		}
 
 		const bodyContainer = contentEl.createDiv();
-		bodyContainer.style.marginTop = "10px";
-		bodyContainer.style.display = "flex";
-		bodyContainer.style.flexDirection = "column";
-		bodyContainer.style.alignItems = "start";
-		bodyContainer.style.justifyContent = "start";
-		bodyContainer.style.boxShadow = "var(--embed-block-shadow-hover)";
-		bodyContainer.style.borderRadius = "var(--radius-s)";
-		bodyContainer.style.padding = "10px";
+		bodyContainer.classList.add("issues-body-container")
 
 		const containerTitle = bodyContainer.createEl("h3", {text: "Description"});
-		containerTitle.style.margin = "0";
-		containerTitle.style.padding = "0";
-		containerTitle.style.fontSize = "1.2em"
-
-
+		containerTitle.classList.add("issues-container-title")
 
 		const body = bodyContainer.createDiv();
-		body.style.margin = "0";
-		body.style.marginTop = "5px";
-		body.style.padding = "0";
-		body.style.whiteSpace = "pre-wrap";
+		body.classList.add("issues-body")
 		body.innerText = details?.body;
 
 
@@ -179,83 +126,42 @@ export class IssuesDetailsModal extends Modal {
 
 		comments.forEach(comment => {
 			const commentsContainer = contentEl.createDiv();
-			commentsContainer.style.marginTop = "10px";
-			commentsContainer.style.display = "flex";
-			commentsContainer.style.flexDirection = "column";
-			commentsContainer.style.alignItems = "start";
-			commentsContainer.style.justifyContent = "start";
-			commentsContainer.style.boxShadow = "var(--embed-block-shadow-hover)";
-			commentsContainer.style.borderRadius = "var(--radius-s)";
+			commentsContainer.classList.add("issues-comments-container")
 
 			const authorContainer = commentsContainer.createDiv();
-			authorContainer.style.display = "flex";
-			authorContainer.style.flexDirection = "row";
-			authorContainer.style.alignItems = "start";
-			authorContainer.style.justifyContent = "start";
-			authorContainer.style.paddingTop = "5px";
-			authorContainer.style.paddingLeft = "5px";
-
+			authorContainer.classList.add("issues-author-container")
 
 			const authorIcon = authorContainer.createEl("img");
+			authorIcon.classList.add("issues-author-icon")
 			authorIcon.src = comment?.avatar_url;
-			authorIcon.style.width = "20px";
-			authorIcon.style.height = "20px";
-			authorIcon.style.marginRight = "5px";
-			authorIcon.style.borderRadius = "50%";
-
 
 			const authorName = authorContainer.createEl("span", {text: comment?.login});
-			authorName.style.margin = "0";
+			authorName.classList.add("issues-author-name")
 
 			const commentBody = commentsContainer.createDiv();
-			commentBody.style.margin = "0";
-			commentBody.style.marginTop = "5px";
-			commentBody.style.marginLeft = "10px";
-			commentBody.style.padding = "0";
-			commentBody.style.marginBottom = "5px"
+			commentBody.classList.add("issues-comment-body")
 
 			const commentText = commentBody.createEl("span", {text: comment?.body});
-			commentText.style.margin = "0";
-			commentText.style.padding = "0";
-			commentText.style.fontSize = "1.05em";
-			commentText.style.whiteSpace = "pre-wrap";
-
+			commentText.classList.add("issues-comment-text")
 
 		});
 
 		const commentsInput = contentEl.createEl("textarea");
-		commentsInput.style.marginTop = "30px";
-		commentsInput.style.width = "100%";
-		commentsInput.style.height = "100px";
-		commentsInput.style.maxWidth = "100%";
-		commentsInput.style.minWidth = "100%";
-		commentsInput.style.maxHeight = "200px";
-		commentsInput.style.minHeight = "50px";
-		commentsInput.style.borderRadius = "var(--radius-s)";
+		commentsInput.classList.add("issues-comments-input")
 		//set the label
 		const commentsInputLabel = contentEl.createEl("label", {text: "Write a comment"});
-		commentsInputLabel.style.margin = "0";
+		commentsInputLabel.classList.add("issues-comments-input-label")
 		commentsInputLabel.htmlFor = commentsInput.id;
 
 
 		const buttonsContainer = contentEl.createDiv();
-		buttonsContainer.style.display = "flex";
-		buttonsContainer.style.flexDirection = "row";
-		buttonsContainer.style.alignItems = "center";
-		buttonsContainer.style.justifyContent = "center";
-		buttonsContainer.style.marginTop = "10px";
+		buttonsContainer.classList.add("issues-buttons-container")
 
 		const commentButton = buttonsContainer.createEl("button", {text: "Comment"});
-		commentButton.style.margin = "0";
-		commentButton.style.marginRight = "10px";
-		commentButton.style.padding = "5px";
-		commentButton.style.borderRadius = "var(--radius-s)";
-
+		commentButton.classList.add("issues-comment-button")
 
 		const closeButton = buttonsContainer.createEl("button", {text: "Close Issue"});
-		closeButton.style.margin = "0";
-		closeButton.style.padding = "5px";
-		closeButton.style.borderRadius = "var(--radius-s)";
+		closeButton.classList.add("issues-close-button")
 
 		commentButton.onclick = async () => {
 			const updated = await api_comment_on_issue(this.octokit, this.issue, commentsInput.value);

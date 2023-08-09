@@ -1,15 +1,251 @@
-#refreshbutton {
-	background-color: inherit;
-	border: none;
-	outline: none;
-	box-shadow: none;
-	padding: 10px;
-	display: none;
+.issue-container {
+	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	margin: 0;
+}
+
+.issues-searchfield {
+	background-color: inherit;
+	width: 80%;
+	margin-top: 10px;
+	height: 30px;
+	box-shadow: none;
+	padding: 10px;
+	align-items: center;
+	justify-content: center;
 	cursor: pointer;
-	position: absolute;
-	left: 3px;
-	top: 3px;
+}
+
+/* Issue Details Modal Stuff */
+.issues-author {
+	margin: 5px 0 0;
+	padding: 0;
+	opacity: 0.7;
+}
+
+.issue-link {
+	font-size: 0.8em;
+	opacity: 0.7;
+}
+
+.issues-state-and-label-container {
+	display: flex;
+	flex-direction: row;
+	align-items: start;
+	justify-content: start;
+	padding-top: 10px;
+}
+
+.issues-state-pill {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	padding-top: 5px;
+	border-radius: 10px;
+	margin-right: 5px;
+}
+
+.issues-state{
+	margin: 0;
+	padding: 0;
+}
+
+.issues-labels{
+	display: flex;
+	flex-direction: row;
+	align-items: start;
+	justify-content: start;
+	gap: 5px;
+	padding: 0;
+	opacity: 0.7;
+}
+
+.issues-label-pill{
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	padding: 5px;
+	border-radius: 10px;
+	margin: 0;
+}
+
+.issues-label-name {
+	margin: 0;
+}
+
+.issues-asignee-container{
+	display: flex;
+	flex-direction: row;
+	align-items: start;
+	justify-content: start;
+	padding-top: 20px;
+}
+
+.issues-assignee-icon{
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	margin: 5px 0 0;
+	margin-inline-end: 5px;
+	padding: 0;
+}
+
+.issues-assignee{
+	margin: 5px 0 0;
+}
+
+.issues-body-container{
+	margin-top: 10px;
+	display: flex;
+	flex-direction: column;
+	align-items: start;
+	justify-content: start;
+	box-shadow: var(--embed-block-shadow-hover);
+	border-radius: var(--radius-s);
+	padding: 10px;
+}
+
+.issues-container-title{
+	margin: 0;
+	padding: 0;
+	font-size: 1.2em;
+}
+
+.issues-body{
+	margin: 5px 0 0;
+	padding: 0;
+	white-space: pre-wrap;
+}
+
+.issues-comments-container{
+	margin-top: 10px;
+	display: flex;
+	flex-direction: column;
+	align-items: start;
+	justify-content: start;
+	box-shadow: var(--embed-block-shadow-hover);
+	border-radius: var(--radius-s);
+}
+
+.issues-author-container {
+	display: flex;
+	flex-direction: row;
+	align-items: start;
+	justify-content: start;
+	padding-top: 5px;
+	padding-left: 5px;
+}
+
+.issues-author-icon {
+	width: 20px;
+	height: 20px;
+	margin-right: 5px;
+	border-radius: 50%;
+}
+
+.issues-author-name{
+	margin: 0;
+}
+
+.issues-comment-body {
+	padding: 0;
+	margin: 5px 0 5px 10px;
+}
+
+.issues-comment-text{
+	margin: 0;
+	padding: 0;
+	font-size: 1.05em;
+	white-space: pre-wrap;
+}
+
+.issues-comments-input {
+	margin-top: 30px;
+	width: 100%;
+	height: 100px;
+	max-width: 100%;
+	min-width: 100%;
+	max-height: 200px;
+	min-height: 50px;
+	border-radius: var(--radius-s);
+
+}
+
+.issues-comments-input-label {
+	margin: 0;
+}
+
+.issues-buttons-container {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	margin-top: 10px;
+}
+
+.issues-comment-button {
+	margin-top: 0;
+	margin-right: 10px;
+	padding: 5px;
+	border-radius: var(--radius-s);
+}
+
+.issues-close-button {
+	margin: 0;
+	padding: 5px;
+	border-radius: var(--radius-s);
+}
+
+/* Issues Modal */
+
+.issues-url-input {
+	width: 100%;
+	padding: 5px;
+	margin-bottom: 10px;
+}
+
+.issues-url-button {
+	width: 100%;
+	padding: 5px;
+	margin-bottom: 10px;
+}
+
+.issues-search-input {
+	width: 100%;
+}
+
+.nav-list {
+	list-style: none;
+	padding: 0;
+	overflow: auto;
+	height: 300px;
+}
+
+.nav-item{
+	padding-top: 15px;
+	padding-right: 15px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.issues-modal-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	border: 1px solid #838284;
+	padding: 5px;
+}
+
+.issues-modal-item-title {
+	font-size: 1.1em;
+}
+
+.issues-item-subtitle {
+	font-size: 0.8em;
+	padding-top: 2px;
 }

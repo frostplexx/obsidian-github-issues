@@ -6,7 +6,6 @@ import {updateIssues} from "./Issues/IssueUpdater";
 import {NewIssueModal} from "./Elements/Modals/NewIssueModal";
 import {createCompactIssueElement, createDefaultIssueElement} from "./Elements/IssueItems";
 import {Issue} from "./Issues/Issue";
-// @ts-ignore
 import {errors} from "./Messages/Errors";
 import {parseIssuesToEmbed} from "./Issues/Issues.shared";
 
@@ -70,25 +69,13 @@ export default class MyPlugin extends Plugin {
 				language: "",
 				updated_at: "",
 			}
-
-			el.style.display = "flex";
-			el.style.flexDirection = "column";
-			el.style.alignItems = "center";
-			el.style.justifyContent = "center";
-
+			el.classList.add("issue-container")
 
 			if (this.settings.show_searchbar) {
 				const searchfield = el.createEl("input")
 				searchfield.setAttribute("type", "text")
 				searchfield.setAttribute("placeholder", "Search Titles, Labels,...")
-				searchfield.style.backgroundColor = "inherit";
-				searchfield.style.width = "80%"
-				searchfield.style.marginTop = "10px"
-				searchfield.style.height = "30px"
-				searchfield.style.boxShadow = 'none'
-				searchfield.style.padding = '10px'
-				searchfield.style.alignItems = 'center'
-				searchfield.style.justifyContent = 'center'
+				searchfield.classList.add("issues-searchfield")
 
 				searchfield.addEventListener("input", () => {
 					//go through the children of "el" and hide all that don't match the search if the search is empty show all
@@ -103,7 +90,6 @@ export default class MyPlugin extends Plugin {
 						}
 					})
 				});
-				searchfield.style.cursor = "pointer"
 			}
 
 

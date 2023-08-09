@@ -25,14 +25,10 @@ export class IssuesModal extends Modal {
 		const urlInput = this.contentEl.createEl('input');
 		urlInput.setAttribute('type', 'text');
 		urlInput.setAttribute('placeholder', 'https://github.com/Frostplexx/obsidian-github-issues.git');
-		urlInput.style.width = '100%';
-		urlInput.style.padding = '5px';
-		urlInput.style.marginBottom = '10px';
+		urlInput.classList.add("issues-url-input")
 
 		const urlButton = this.contentEl.createEl('button', {text: 'Insert'});
-		urlButton.style.width = '100%';
-		urlButton.style.padding = '5px';
-		urlButton.style.marginBottom = '10px';
+		urlButton.classList.add("issues-url-button")
 		urlButton.addEventListener('click', () => {
 			pasteRepoName(this.app, urlInput.value)
 			this.close();
@@ -45,7 +41,7 @@ export class IssuesModal extends Modal {
 		const searchInput = contentEl.createEl('input');
 		searchInput.setAttribute('type', 'text');
 		searchInput.setAttribute('placeholder', 'Search...');
-		searchInput.style.width = '100%';
+		searchInput.classList.add("issues-search-input")
 		searchInput.addEventListener('input', () => {
 			const listEl = contentEl.querySelector('ul');
 			if (listEl) {
@@ -71,10 +67,6 @@ export class IssuesModal extends Modal {
 			const listEl = contentEl.createEl('ul');
 			listEl.addClass('nav');
 			listEl.addClass('nav-list');
-			listEl.style.listStyle = "none";
-			listEl.style.padding = "0";
-			listEl.style.overflow = "auto";
-			listEl.style.height = "300px";
 
 			//remove the * from the list and add more padding
 
@@ -101,36 +93,23 @@ export class IssuesModal extends Modal {
 const repoItem = (repo: RepoItem) => {
 	const opacity = '0.7';
 	const itemEl = document.createElement('li');
-
 	itemEl.addClass('nav-item');
 	itemEl.addClass('nav-link');
-	itemEl.style.paddingTop = '15px';
-	itemEl.style.paddingRight = '15px';
-	itemEl.style.overflow = 'hidden';
-	itemEl.style.textOverflow = 'ellipsis';
-	itemEl.style.whiteSpace = 'nowrap';
-	itemEl.style.cursor = 'pointer';
 
 	const containter = document.createElement('div');
-	containter.style.display = 'flex';
-	containter.style.flexDirection = 'column';
-	containter.style.justifyContent = 'center';
-	containter.style.border = '1px solid #838284';
-	containter.style.padding = '5px';
-	containter.style.borderRadius = '5px';
+	containter.classList.add("issues-modal-container")
 	containter.style.opacity = opacity;
 	itemEl.appendChild(containter);
 
 	const itemTitle = document.createElement('span');
-	itemTitle.style.fontSize = '1.1em';
+	itemTitle.classList.add("issues-modal-item-title")
 	itemTitle.style.opacity = opacity;
 	itemTitle.innerText = repo.name;
 	containter.appendChild(itemTitle);
 
 	const itemSubtitle = document.createElement('span');
-	itemSubtitle.style.fontSize = '0.8em';
+	itemSubtitle.classList.add("issues-item-subtitle")
 	itemSubtitle.style.opacity = opacity;
-	itemSubtitle.style.paddingTop = '2px';
 	itemSubtitle.innerText = `${repo.language} • Updated on ${calculateHumanDate(repo.updated_at)}`
 
 	containter.appendChild(itemSubtitle);
