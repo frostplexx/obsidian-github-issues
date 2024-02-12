@@ -31,8 +31,9 @@ export function createDefaultIssueElement(
 	});
 	detailsText.classList.add("issue-details-text");
 
+	const labelContainer = title.createDiv({ cls: "label-container" });
 	issue.labels.forEach((label) => {
-		const labelEl = title.createDiv({ cls: "label" });
+		const labelEl = labelContainer.createDiv({ cls: "label" });
 		labelEl.style.backgroundColor = `#${label.color}`;
 		labelEl.style.color = getTextColor(label.color);
 		labelEl.innerText = label.name;
@@ -60,17 +61,16 @@ export function createCompactIssueElement(
 	app: App,
 ) {
 	const container = el.createDiv({ cls: "issue-container" });
-	container.classList.add("compact-issue-container");
+	container.classList.add("compact");
 
 	const text = container.createSpan({
 		text: `#${issue.number} • ${issue.title} `,
 	});
-	text.classList.add("compact-issue-container-title");
+	text.classList.add("compact");
 
 	const text2 = container.createSpan({
-		text: `opened ${getPasteableTimeDelta(issue.created_at)} by ${
-			issue.author
-		}`,
+		text: `opened ${getPasteableTimeDelta(issue.created_at)} by ${issue.author
+			}`,
 	});
 	text2.style.opacity = "0.7";
 

@@ -84,7 +84,6 @@ export default class MyPlugin extends Plugin {
 					language: "",
 					updated_at: "",
 				};
-				el.classList.add("issue-container");
 
 				if (this.settings.show_searchbar) {
 					const searchfield = el.createEl("input");
@@ -251,8 +250,8 @@ class GithubIssuesSettings extends PluginSettingTab {
 							this.plugin.settings.password,
 						))
 							? new Octokit({
-									auth: this.plugin.settings.password,
-							  })
+								auth: this.plugin.settings.password,
+							})
 							: new Octokit({});
 						if (
 							this.plugin.octokit &&
@@ -280,8 +279,8 @@ class GithubIssuesSettings extends PluginSettingTab {
 							this.plugin.settings.password,
 						))
 							? new Octokit({
-									auth: this.plugin.settings.password,
-							  })
+								auth: this.plugin.settings.password,
+							})
 							: new Octokit({});
 						if (
 							this.plugin.octokit &&

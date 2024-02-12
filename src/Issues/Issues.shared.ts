@@ -1,5 +1,5 @@
-import {App, MarkdownView} from "obsidian";
-import {RepoItem} from "../API/ApiHandler";
+import { App, MarkdownView } from "obsidian";
+import { RepoItem } from "../API/ApiHandler";
 
 /**
  * Inserts author/repo combination into the active Markdown editor.
@@ -10,7 +10,7 @@ import {RepoItem} from "../API/ApiHandler";
  *
  * @returns {boolean} - Returns true if the repository name is successfully inserted, otherwise returns false.
  */
-export function pasteRepoName(app: App, arg: string | RepoItem) {
+export function pasteRepoName(app: App, arg: string | RepoItem): boolean {
 	const view = app.workspace.getActiveViewOfType(MarkdownView)
 	if (view) {
 		const editor = view.editor;
@@ -28,7 +28,7 @@ export function pasteRepoName(app: App, arg: string | RepoItem) {
 }
 
 
-function parseArgToAuthorAndRepoName(arg: string | RepoItem): string{
+function parseArgToAuthorAndRepoName(arg: string | RepoItem): string {
 	if (typeof arg === 'string') {
 		const url = new URL(arg);
 		return `${url.pathname.substring(1)}`.replace(".git", "");
@@ -49,20 +49,20 @@ export function parseIssuesToEmbed(string: string): number[] {
 	const matchArray = string.match(regex);
 
 	if (matchArray !== null) {
-		for(const match of matchArray) {
+		for (const match of matchArray) {
 			const issueNums = match.replace('#', '').split(',');
 
-			for(const num of issueNums) {
+			for (const num of issueNums) {
 				if (num.includes('-')) {
 					const [start, end] = num.split('-').map(Number);
-					for(let i = start; i <= end; i++) {
-						if(!resultArray.includes(i)) {
+					for (let i = start; i <= end; i++) {
+						if (!resultArray.includes(i)) {
 							resultArray.push(i);
 						}
 					}
 				} else {
 					const issue = Number(num);
-					if(!resultArray.includes(issue)) {
+					if (!resultArray.includes(issue)) {
 						resultArray.push(issue);
 					}
 				}

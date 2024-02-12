@@ -1,16 +1,16 @@
-import {App, Modal, Notice} from "obsidian";
-import {Issue} from "../../Issues/Issue";
-import {Octokit} from "@octokit/core";
-import {getPasteableTimeDelta} from "../../Utils/Utils";
-import {loadingSpinner} from "../../Utils/Loader";
+import { App, Component, MarkdownRenderer, Modal, Notice } from "obsidian";
+import { Issue } from "../../Issues/Issue";
+import { Octokit } from "@octokit/core";
+import { getPasteableTimeDelta } from "../../Utils/Utils";
+import { loadingSpinner } from "../../Utils/Loader";
 import {
 	api_comment_on_issue,
 	api_get_issue_comments,
 	api_get_issue_details,
 	api_update_issue
 } from "../../API/ApiHandler";
-import {updateIssues} from "../../Issues/IssueUpdater";
-import {getTextColor} from "../../Utils/Color.utils";
+import { updateIssues } from "../../Issues/IssueUpdater";
+import { getTextColor } from "../../Utils/Color.utils";
 
 /**
  * Modal for seeing the issue details
@@ -19,14 +19,14 @@ export class IssuesDetailsModal extends Modal {
 	issue: Issue;
 	octokit: Octokit;
 	constructor(app: App, issue: Issue, octokit: Octokit) {
-        super(app);
+		super(app);
 		this.issue = issue;
 		this.octokit = octokit;
 	}
 
 	async onOpen() {
-		const {contentEl} = this;
-		const title = contentEl.createEl("h2", {text: this.issue.title + " • #" + this.issue.number});
+		const { contentEl } = this;
+		const title = contentEl.createEl("h2", { text: this.issue.title + " • #" + this.issue.number });
 		title.style.margin = "0";
 
 		const authorAndSutff = contentEl.createSpan({
@@ -35,7 +35,7 @@ export class IssuesDetailsModal extends Modal {
 		authorAndSutff.classList.add("issues-auhtor")
 
 		contentEl.createEl("br");
-		const issueLink = contentEl.createEl("a", {text: "View on GitHub"});
+		const issueLink = contentEl.createEl("a", { text: "View on GitHub" });
 		issueLink.setAttribute("href", "https://github.com/" + this.issue.repo?.owner + "/" + this.issue.repo?.name + "/issues/" + this.issue.number);
 		issueLink.classList.add("issue-link")
 		const spinner = loadingSpinner();
@@ -44,8 +44,8 @@ export class IssuesDetailsModal extends Modal {
 		//fetch the issue details
 		const details = await api_get_issue_details(this.octokit, this.issue);
 		spinner.remove();
-		if (!details){
-			contentEl.createEl("h3", {text: "Could not fetch issue details"});
+		if (!details) {
+			contentEl.createEl("h3", { text: "Could not fetch issue details" });
 			return;
 		}
 
@@ -55,27 +55,27 @@ export class IssuesDetailsModal extends Modal {
 		const statePill = stateAndLabelsContainer.createDiv();
 		statePill.classList.add("issues-state-pill")
 		//make it green if state is open
-		if (details?.state === "open"){
+		if (details?.state === "open") {
 			statePill.style.backgroundColor = "rgba(31, 118, 41, 0.5)";
 		} else {
 			statePill.style.backgroundColor = "rgba(116, 58, 222, 0.5)";
 		}
 
 
-		const state = statePill.createEl("span", {text: details?.state});
+		const state = statePill.createEl("span", { text: details?.state });
 		state.classList.add("issues-state")
 
 		const labels = stateAndLabelsContainer.createDiv();
 		labels.classList.add("issues-labels")
-		if(details?.labels.length > 0){
+		if (details?.labels.length > 0) {
 			//loop through the labels
 			// eslint-disable-next-line no-unsafe-optional-chaining
-			for (const label of details?.labels){
+			for (const label of details?.labels) {
 				const labelPill = labels.createDiv();
 				labelPill.classList.add("issues-label-pill")
 				labelPill.style.background = "#" + label.color;
 
-				const labelName = labelPill.createEl("span", {text: label.name});
+				const labelName = labelPill.createEl("span", { text: label.name });
 				labelName.classList.add("issues-label-name")
 				labelName.style.color = getTextColor(label.color);
 			}
@@ -83,7 +83,7 @@ export class IssuesDetailsModal extends Modal {
 
 
 
-		if (details.assignee.login != undefined){
+		if (details.assignee.login != undefined) {
 			const assigneeContainer = contentEl.createDiv();
 			assigneeContainer.classList.add("issues-asignee-container")
 
@@ -102,26 +102,26 @@ export class IssuesDetailsModal extends Modal {
 		const bodyContainer = contentEl.createDiv();
 		bodyContainer.classList.add("issues-body-container")
 
-		const containerTitle = bodyContainer.createEl("h3", {text: "Description"});
+		const containerTitle = bodyContainer.createEl("h3", { text: "Description" });
 		containerTitle.classList.add("issues-container-title")
 
 		const body = bodyContainer.createDiv();
 		body.classList.add("issues-body")
-		body.innerText = details?.body;
 
+		MarkdownRenderer.renderMarkdown(details?.body, body, "", Component.prototype);
 
 		//load the comments
 		const spinner2 = loadingSpinner();
 		contentEl.appendChild(spinner2);
 		const comments = await api_get_issue_comments(this.octokit, this.issue);
 		spinner2.remove();
-		if (!comments){
-			contentEl.createEl("h3", {text: "Could not fetch comments"});
+		if (!comments) {
+			contentEl.createEl("h3", { text: "Could not fetch comments" });
 			return;
 		}
 
-		if(comments.length > 0){
-			contentEl.createEl("h3", {text: "Comments"});
+		if (comments.length > 0) {
+			contentEl.createEl("h3", { text: "Comments" });
 		}
 
 		comments.forEach(comment => {
@@ -135,13 +135,14 @@ export class IssuesDetailsModal extends Modal {
 			authorIcon.classList.add("issues-author-icon")
 			authorIcon.src = comment?.avatar_url;
 
-			const authorName = authorContainer.createEl("span", {text: comment?.login});
+			const authorName = authorContainer.createEl("span", { text: comment?.login });
 			authorName.classList.add("issues-author-name")
 
 			const commentBody = commentsContainer.createDiv();
 			commentBody.classList.add("issues-comment-body")
 
-			const commentText = commentBody.createEl("span", {text: comment?.body});
+			const commentText = commentBody.createEl("span");
+			MarkdownRenderer.renderMarkdown(comment?.body, commentText, "", Component.prototype);
 			commentText.classList.add("issues-comment-text")
 
 		});
@@ -149,7 +150,7 @@ export class IssuesDetailsModal extends Modal {
 		const commentsInput = contentEl.createEl("textarea");
 		commentsInput.classList.add("issues-comments-input")
 		//set the label
-		const commentsInputLabel = contentEl.createEl("label", {text: "Write a comment"});
+		const commentsInputLabel = contentEl.createEl("label", { text: "Write a comment" });
 		commentsInputLabel.classList.add("issues-comments-input-label")
 		commentsInputLabel.htmlFor = commentsInput.id;
 
@@ -157,15 +158,15 @@ export class IssuesDetailsModal extends Modal {
 		const buttonsContainer = contentEl.createDiv();
 		buttonsContainer.classList.add("issues-buttons-container")
 
-		const commentButton = buttonsContainer.createEl("button", {text: "Comment"});
+		const commentButton = buttonsContainer.createEl("button", { text: "Comment" });
 		commentButton.classList.add("issues-comment-button")
 
-		const closeButton = buttonsContainer.createEl("button", {text: "Close Issue"});
+		const closeButton = buttonsContainer.createEl("button", { text: "Close Issue" });
 		closeButton.classList.add("issues-close-button")
 
 		commentButton.onclick = async () => {
 			const updated = await api_comment_on_issue(this.octokit, this.issue, commentsInput.value);
-			if(updated){
+			if (updated) {
 				new Notice("Comment posted");
 				this.close();
 			}
@@ -176,7 +177,7 @@ export class IssuesDetailsModal extends Modal {
 				state: "closed"
 			});
 
-			if(updated){
+			if (updated) {
 				this.close();
 				new Notice("Issue closed");
 				await updateIssues(this.app, this.octokit)
