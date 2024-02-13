@@ -28,6 +28,7 @@ interface MyPluginSettings {
 	password: string;
 	issue_appearance: IssueAppearance;
 	show_searchbar: boolean;
+	api_endpoint: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
@@ -35,6 +36,7 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	password: "",
 	issue_appearance: IssueAppearance.DEFAULT,
 	show_searchbar: true,
+	api_endpoint: "https://api.github.com",
 };
 
 export default class MyPlugin extends Plugin {
@@ -52,7 +54,7 @@ export default class MyPlugin extends Plugin {
 			);
 		} else {
 			try {
-				this.octokit = (await api_authenticate(this.settings.password))
+				this.octokit = (await api_authenticate(this.settings.password, this.settings.api_endpoint))
 					? new Octokit({ auth: this.settings.password })
 					: new Octokit({ auth: "" });
 				if (!this.octokit) {
@@ -248,6 +250,7 @@ class GithubIssuesSettings extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						this.plugin.octokit = (await api_authenticate(
 							this.plugin.settings.password,
+							this.plugin.settings.api_endpoint,
 						))
 							? new Octokit({
 								auth: this.plugin.settings.password,
@@ -261,6 +264,7 @@ class GithubIssuesSettings extends PluginSettingTab {
 						}
 					}),
 			);
+
 
 		// password
 		new Setting(containerEl)
@@ -277,6 +281,36 @@ class GithubIssuesSettings extends PluginSettingTab {
 						//trigger reauthentication
 						this.plugin.octokit = (await api_authenticate(
 							this.plugin.settings.password,
+							this.plugin.settings.api_endpoint,
+						))
+							? new Octokit({
+								auth: this.plugin.settings.password,
+							})
+							: new Octokit({});
+						if (
+							this.plugin.octokit &&
+							this.plugin.settings.username
+						) {
+							new Notice("Successfully authenticated!");
+						}
+					}),
+			);
+
+		// github api endpoint
+		new Setting(containerEl)
+			.setName("Github API URL")
+			.setDesc("The url of the github api. Default is https://api.github.com")
+			.addText((text) =>
+				text
+					.setPlaceholder("https://api.github.com")
+					.setValue(this.plugin.settings.api_endpoint)
+					.onChange(async (value) => {
+						this.plugin.settings.api_endpoint = value;
+						await this.plugin.saveSettings();
+						//trigger reauthentication
+						this.plugin.octokit = (await api_authenticate(
+							this.plugin.settings.password,
+							this.plugin.settings.api_endpoint,
 						))
 							? new Octokit({
 								auth: this.plugin.settings.password,

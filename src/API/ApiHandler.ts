@@ -1,17 +1,18 @@
 import { Octokit } from "@octokit/core";
-import {Issue} from "../Issues/Issue";
-import {parseRepoUrl} from "../Utils/Utils";
-import {OctokitResponse} from "@octokit/types";
-import {Notice} from "obsidian";
+import { Issue } from "../Issues/Issue";
+import { parseRepoUrl } from "../Utils/Utils";
+import { OctokitResponse } from "@octokit/types";
+import { Notice } from "obsidian";
 
 
 /**
  * Checks if the github api is reachable with the given token
  * @param token
  */
-export async function api_authenticate(token: string): Promise<Octokit | null> {
+export async function api_authenticate(token: string, base_url: string): Promise<Octokit | null> {
 	const octokit = new Octokit({
-		auth: token
+		auth: token,
+		baseUrl: base_url
 	});
 
 	const res: OctokitResponse<never> = await octokit.request("GET /octocat", {});
@@ -52,7 +53,7 @@ export async function api_get_repos(octokit: Octokit) {
  * @param octokit
  * @param repo
  */
-export async function api_get_labels(octokit: Octokit, repo: RepoItem): Promise<any[]>{
+export async function api_get_labels(octokit: Octokit, repo: RepoItem): Promise<any[]> {
 
 	const res = await octokit.request('GET /repos/{owner}/{repo}/labels', {
 		owner: repo.owner,
@@ -62,12 +63,12 @@ export async function api_get_labels(octokit: Octokit, repo: RepoItem): Promise<
 		}
 	})
 
-	if(res.status == 200){
+	if (res.status == 200) {
 		return res.data.map((label) => {
-				return {
-					name: label.name,
-					color: label.color
-				};
+			return {
+				name: label.name,
+				color: label.color
+			};
 		})
 	} else {
 		return [];
@@ -106,7 +107,7 @@ export async function api_submit_issue(octokit: Octokit, repo: RepoItem, issue: 
  */
 export async function api_get_issues_by_url(octokit: Octokit, url: string): Promise<Issue[]> {
 
-	const {owner, repo} = parseRepoUrl(url);
+	const { owner, repo } = parseRepoUrl(url);
 	const issues: Issue[] = [];
 	try {
 		const res = await octokit.request('GET /repos/{owner}/{repo}/issues', {
@@ -117,20 +118,20 @@ export async function api_get_issues_by_url(octokit: Octokit, url: string): Prom
 			}
 		})
 
-		if(res.status == 200){
+		if (res.status == 200) {
 			for (const issue of res.data) {
-				issues.push( new Issue(
+				issues.push(new Issue(
 					issue.title,
 					issue.body ?? "",
 					issue.user?.login ?? "",
 					issue.number,
 					issue.created_at,
 					issue.labels.map((label: any) => {
-					return {
-						name: label.name,
-						color: label.color
-					} as Label ?? [];
-				})));
+						return {
+							name: label.name,
+							color: label.color
+						} as Label ?? [];
+					})));
 			}
 
 			return issues;
@@ -161,9 +162,9 @@ export async function api_get_own_issues(octokit: Octokit, repo: RepoItem): Prom
 		}
 	})
 
-	if(res.status == 200){
+	if (res.status == 200) {
 		for (const issue of res.data) {
-			issues.push( new Issue(
+			issues.push(new Issue(
 				issue.title,
 				issue.body ?? "",
 				issue.user?.login ?? "",
@@ -191,7 +192,7 @@ export async function api_get_issues_by_id(octokit: Octokit, repo: RepoItem, iss
 	return iss.filter(issue => issueIDs.includes(issue.number));
 }
 
-export async function api_get_issue_details(octokit: Octokit, issue:Issue){
+export async function api_get_issue_details(octokit: Octokit, issue: Issue) {
 	if (issue.repo == null) return;
 
 	const res = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
@@ -269,7 +270,7 @@ export async function api_update_issue(octokit: Octokit, issue: Issue, toBeUpdat
 export async function api_get_issue_comments(octokit: Octokit, issue: Issue) {
 	if (issue.repo == null) return;
 	const res = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-		owner:  issue.repo?.owner,
+		owner: issue.repo?.owner,
 		repo: issue.repo?.name,
 		issue_number: issue.number,
 		headers: {
@@ -277,7 +278,7 @@ export async function api_get_issue_comments(octokit: Octokit, issue: Issue) {
 		}
 	})
 
-	if(res.status == 200){
+	if (res.status == 200) {
 		//return the comments array as RepoComment[]
 		return res.data.map((comment) => {
 			return {
@@ -323,7 +324,7 @@ export interface RepoDetails {
 	comments: number;
 }
 
-export  interface Label {
+export interface Label {
 	name: string;
 	color: string;
 }
