@@ -1,9 +1,9 @@
-import {App, Modal} from "obsidian";
-import {api_get_repos, RepoItem} from "../../API/ApiHandler";
-import {OctoBundle} from "../../main";
-import {calculateHumanDate} from "../../Utils/Utils";
-import {loadingSpinner} from "../../Utils/Loader";
-import {pasteRepoName} from "../../Issues/Issues.shared";
+import { App, MarkdownView, Modal } from "obsidian";
+import { api_get_repos, RepoItem } from "../../API/ApiHandler";
+import { OctoBundle } from "../../main";
+import { calculateHumanDate } from "../../Utils/Utils";
+import { loadingSpinner } from "../../Utils/Loader";
+import { pasteRepoName } from "../../Issues/Issues.shared";
 
 /*
 * Modal for choosing and inserting issues
@@ -18,24 +18,25 @@ export class IssuesModal extends Modal {
 
 	async onOpen() {
 
-		const {contentEl} = this;
+		const { contentEl } = this;
 
 		//insert from url
-		contentEl.createEl('h2', {text: 'Insert from URL'});
+		contentEl.createEl('h2', { text: 'Insert from URL' });
 		const urlInput = this.contentEl.createEl('input');
 		urlInput.setAttribute('type', 'text');
 		urlInput.setAttribute('placeholder', 'https://github.com/Frostplexx/obsidian-github-issues.git');
 		urlInput.classList.add("issues-url-input")
 
-		const urlButton = this.contentEl.createEl('button', {text: 'Insert'});
+		const urlButton = this.contentEl.createEl('button', { text: 'Insert' });
 		urlButton.classList.add("issues-url-button")
 		urlButton.addEventListener('click', () => {
-			pasteRepoName(this.app, urlInput.value)
+			const view = app.workspace.getActiveViewOfType(MarkdownView) as MarkdownView;
+			pasteRepoName(view, urlInput.value)
 			this.close();
 		});
 
 		//title "Select a repo"
-		contentEl.createEl('h2', {text: 'Your Repositories'});
+		contentEl.createEl('h2', { text: 'Your Repositories' });
 
 		//add search bar
 		const searchInput = contentEl.createEl('input');
@@ -73,7 +74,9 @@ export class IssuesModal extends Modal {
 			for (const repo of repos) {
 				const itemEl = repoItem(repo);
 				itemEl.addEventListener('click', () => {
-					pasteRepoName(this.app, repo)
+
+					const view = app.workspace.getActiveViewOfType(MarkdownView) as MarkdownView;
+					pasteRepoName(view, repo)
 					this.close();
 				});
 				listEl.appendChild(itemEl);
@@ -83,7 +86,7 @@ export class IssuesModal extends Modal {
 	}
 
 	onClose() {
-		const {contentEl} = this;
+		const { contentEl } = this;
 		contentEl.empty();
 	}
 

@@ -1,17 +1,15 @@
-import { App, MarkdownView } from "obsidian";
+import { MarkdownView } from "obsidian";
 import { RepoItem } from "../API/ApiHandler";
 
 /**
  * Inserts author/repo combination into the active Markdown editor.
  * Only works with MarkdownView.
  *
- * @param {App} app - The Obsidian app object.
  * @param {string | RepoItem} arg - The GitHub repository name or author/repo combination.
  *
  * @returns {boolean} - Returns true if the repository name is successfully inserted, otherwise returns false.
  */
-export function pasteRepoName(app: App, arg: string | RepoItem): boolean {
-	const view = app.workspace.getActiveViewOfType(MarkdownView)
+export function pasteRepoName(view: MarkdownView | null, arg: string | RepoItem): boolean {
 	if (view) {
 		const editor = view.editor;
 

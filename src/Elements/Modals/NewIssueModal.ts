@@ -33,13 +33,14 @@ export class NewIssueModal extends Modal {
 		if (repo()) {
 			const { contentEl } = this;
 			contentEl.createEl("h2", {
-				text: "New Issue in: " + repo()!.owner + "/" + repo()!.name,
+				text: "New Issue in: " + repo()?.owner + "/" + repo()?.name,
 			});
 			const spinner = loadingSpinner();
 			contentEl.appendChild(spinner);
 			//get the labels
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const labels = (
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				await api_get_labels(this.ocotoBundle.octokit, repo()!)
 			).map((label) => label.name);
 
@@ -120,7 +121,7 @@ export class NewIssueModal extends Modal {
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				const submitted = await api_submit_issue(
 					this.ocotoBundle.octokit,
-					repo()!,
+					repo(),
 					{
 						labels: elements,
 						title: titleInput.value,
@@ -131,7 +132,7 @@ export class NewIssueModal extends Modal {
 				if (submitted) {
 					new Notice("Submitted Issue");
 					this.close();
-					await updateIssues(this.app, this.ocotoBundle.octokit);
+					await updateIssues(this.app);
 				} else {
 					new Notice("Failed to submit issue");
 				}

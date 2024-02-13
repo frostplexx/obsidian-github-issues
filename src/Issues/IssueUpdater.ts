@@ -1,20 +1,19 @@
-import {App, Editor, MarkdownView, Notice} from "obsidian";
-import {api_get_issues_by_url, RepoItem} from "../API/ApiHandler";
-import {verifyURL} from "../Utils/Utils";
-import {pasteRepoName} from "./Issues.shared";
-import {Octokit} from "@octokit/core";
-import {CSVIssue, Issue} from "./Issue";
+import { App, Editor, MarkdownView, Notice } from "obsidian";
+import { api_get_issues_by_url, RepoItem } from "../API/ApiHandler";
+import { verifyURL } from "../Utils/Utils";
+import { pasteRepoName } from "./Issues.shared";
+import { Octokit } from "@octokit/core";
+import { CSVIssue } from "./Issue";
 
 /**
  * Fetches issues from the given url and updates them in the current editor
  * @param app
- * @param octokit
  */
-export async function updateIssues(app: App, octokit: Octokit) {
+export async function updateIssues(app: App) {
 	let repo = getRepoInFile(app);
 	let view = app.workspace.getActiveViewOfType(MarkdownView)
 
-	if(!checkEditor(view, repo)) return;
+	if (!checkEditor(view, repo)) return;
 	// I know that this is stupid, but it gets asserted in the checkEditor function so it's fine...probably
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	repo = repo!;
@@ -24,16 +23,12 @@ export async function updateIssues(app: App, octokit: Octokit) {
 	const url = "https://github.com/" + repo.name + "/" + repo.repo + ".git";
 
 	//verify the url
-	if(!verifyURL(url)){
+	if (!verifyURL(url)) {
 		new Notice("Error building url: " + url)
 		return;
 	}
 
-	const issues = await fetchIssues(octokit, url);
-
-	if (issues) {
-		insertIssues(editor, repo, view, url, issues);
-	}
+	insertIssues(editor, repo, view, url);
 }
 
 /**
@@ -42,18 +37,17 @@ export async function updateIssues(app: App, octokit: Octokit) {
  * @param repo
  * @param view
  * @param url
- * @param issues
  * @private
  */
-function insertIssues(editor: Editor, repo: FileRepo, view: MarkdownView | null, url: string, issues: Issue[]) {
+function insertIssues(editor: Editor, repo: FileRepo, view: MarkdownView | null, url: string) {
 	// 	//delete the lines between the start and end line
-	editor.replaceRange("", {line: repo.start_line, ch: 0}, {line: repo.end_line + 2, ch: 0});
+	editor.replaceRange("", { line: repo.start_line, ch: 0 }, { line: repo.end_line + 2, ch: 0 });
 
 	//set the cursor to the start line
-	editor.setCursor({line: repo.start_line, ch: 0});
+	editor.setCursor({ line: repo.start_line, ch: 0 });
 
 	//insert the issues
-	const pasted = pasteRepoName(view, url, issues);
+	const pasted = pasteRepoName(view, url);
 	if (pasted) {
 		new Notice("Updated issues");
 	} else {
@@ -74,7 +68,7 @@ export async function softUpdateIssues(app: App, octokit: Octokit) {
 	let repo = getRepoInFile(app);
 	let view = app.workspace.getActiveViewOfType(MarkdownView)
 
-	if(!checkEditor(view, repo)) return;
+	if (!checkEditor(view, repo)) return;
 	// I know that this is stupid, but it gets asserted in the checkEditor function so it's fine...probably
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	repo = repo!;
@@ -84,7 +78,7 @@ export async function softUpdateIssues(app: App, octokit: Octokit) {
 	const url = "https://github.com/" + repo.name + "/" + repo.repo + ".git";
 
 	//verify the url
-	if(!verifyURL(url)){
+	if (!verifyURL(url)) {
 		new Notice("Error building url: " + url)
 		return;
 	}
@@ -125,7 +119,7 @@ export async function softUpdateIssues(app: App, octokit: Octokit) {
 			new Notice("No Issue updates found")
 			return;
 		} else {
-			insertIssues(editor, repo, view, url, issues);
+			insertIssues(editor, repo, view, url);
 		}
 	}
 	//update the last update time
@@ -138,18 +132,18 @@ export async function softUpdateIssues(app: App, octokit: Octokit) {
  * @param view
  * @param repo
  */
-function checkEditor(view:MarkdownView |null, repo: FileRepo | null){
-	if(!view){
+function checkEditor(view: MarkdownView | null, repo: FileRepo | null) {
+	if (!view) {
 		new Notice("No active view");
 		return false;
 	}
 	//get the current editor mode
-	if (view.getMode() !== "source"){
+	if (view.getMode() !== "source") {
 		new Notice("Please switch to source mode before updating the issues");
 		return false;
 	}
 
-	if(!repo){
+	if (!repo) {
 		new Notice("No repo found in file");
 		return false;
 	}
@@ -164,7 +158,7 @@ function checkEditor(view:MarkdownView |null, repo: FileRepo | null){
  */
 async function fetchIssues(octokit: Octokit, url: string) {
 	const issues = await api_get_issues_by_url(octokit, url);
-	if (issues.length === 0){
+	if (issues.length === 0) {
 		return null;
 	}
 	return issues;
@@ -206,7 +200,7 @@ export function getRepoInFile(app: App) {
 		console.log(name);
 		console.log(repo);
 
-		if(repo != undefined){
+		if (repo != undefined) {
 			return {
 				name: name,
 				repo: repo,

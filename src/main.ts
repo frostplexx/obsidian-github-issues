@@ -173,7 +173,7 @@ export default class MyPlugin extends Plugin {
 			callback: () => {
 				if (this.octokit) {
 					new Notice("Updating issues...");
-					updateIssues(this.app, this.octokit);
+					updateIssues(this.app);
 				} else {
 					new Notice(errors.noCreds);
 				}

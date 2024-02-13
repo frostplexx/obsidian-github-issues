@@ -82,7 +82,8 @@ export async function api_get_labels(octokit: Octokit, repo: RepoItem): Promise<
  * @param issue
  * @returns true if the issue was submitted successfully
  */
-export async function api_submit_issue(octokit: Octokit, repo: RepoItem, issue: SubmittableIssue) {
+export async function api_submit_issue(octokit: Octokit, repo: RepoItem | null, issue: SubmittableIssue) {
+	if (repo == null) return;
 	const res = await octokit.request('POST /repos/{owner}/{repo}/issues', {
 		owner: repo.owner,
 		repo: repo.name,
