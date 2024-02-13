@@ -30,12 +30,10 @@
 	cursor: pointer;
 	margin-bottom: 5px;
 	margin-top: 5px;
-	box-shadow: var(--embed-block-shadow-hover);
-	border-radius: var(--radius-s);
 	overflow: hidden;
 	text-overflow: ellipsis;
-	white-space: nowrap;
-	font-size: 1.1em;
+	font-size: 1em;
+	padding-left: 2px;
 }
 
 .issues-searchfield {

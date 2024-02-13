@@ -69,9 +69,10 @@ export function createCompactIssueElement(
 	text.classList.add("compact");
 
 	const text2 = container.createSpan({
-		text: `opened ${getPasteableTimeDelta(issue.created_at)} by ${issue.author
+		text: `Opened ${getPasteableTimeDelta(issue.created_at)} by ${issue.author
 			}`,
 	});
+
 	text2.style.opacity = "0.7";
 
 	container.addEventListener("mouseenter", () => {

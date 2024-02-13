@@ -248,7 +248,7 @@ export async function api_comment_on_issue(octokit: Octokit, issue: Issue, comme
  * @param issue
  * @param toBeUpdated
  */
-export async function api_update_issue(octokit: Octokit, issue: Issue, toBeUpdated: any) {
+export async function api_update_issue(octokit: Octokit, issue: Issue, toBeUpdated: unknown) {
 	if (issue.repo == null) return;
 
 	const options = {

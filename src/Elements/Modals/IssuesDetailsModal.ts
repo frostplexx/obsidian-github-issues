@@ -1,7 +1,7 @@
 import { App, Component, MarkdownRenderer, Modal, Notice } from "obsidian";
 import { Issue } from "../../Issues/Issue";
 import { Octokit } from "@octokit/core";
-import { getPasteableTimeDelta } from "../../Utils/Utils";
+import { getPasteableTimeDelta, reRenderView } from "../../Utils/Utils";
 import { loadingSpinner } from "../../Utils/Loader";
 import {
 	api_comment_on_issue,
@@ -178,9 +178,9 @@ export class IssuesDetailsModal extends Modal {
 			});
 
 			if (updated) {
+				reRenderView(this.app);
 				this.close();
 				new Notice("Issue closed");
-				await updateIssues(this.app, this.octokit)
 			} else {
 				new Notice("Could not close issue");
 			}

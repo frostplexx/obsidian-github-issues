@@ -1,17 +1,31 @@
+import { App } from "obsidian";
+
+/** 
+ * Re-renders the current view
+ * @param app - the app to re-render
+ * @returns void
+ */
+export function reRenderView(app: App) {
+	const activeLeafObj = app.workspace.getLeaf();
+	// @ts-ignore
+	activeLeafObj.rebuildView();
+}
+
+
 /**
  * Parses the given date string into a human readable date
  * @param dateString
  */
-export function calculateHumanDate(dateString: string){
+export function calculateHumanDate(dateString: string) {
 	const date = new Date(dateString);
-	return date.toLocaleDateString(undefined );
+	return date.toLocaleDateString(undefined);
 }
 
 /**
  * Parses a repo url into owner and repo
  * @param url
  */
-export function parseRepoUrl(url: string): {owner: string, repo: string} {
+export function parseRepoUrl(url: string): { owner: string, repo: string } {
 	const split = url.split('/');
 	return {
 		owner: split[3],
@@ -34,7 +48,7 @@ export function verifyURL(url: string): boolean {
 /*
  * Parses the given date string into a human readable delta e.g. 1 day, 2 hours, 5 min ago or a human readable date if the date is older than 1 week
  */
-export function getPasteableTimeDelta(dateString: string){
+export function getPasteableTimeDelta(dateString: string) {
 	const date = new Date(dateString);
 	const now = new Date();
 	const delta = now.getTime() - date.getTime();
@@ -44,7 +58,7 @@ export function getPasteableTimeDelta(dateString: string){
 	const days = Math.floor(hours / 24);
 	const weeks = Math.floor(days / 7);
 	if (weeks > 0) {
-		return "on " + date.toLocaleDateString(undefined );
+		return "on " + date.toLocaleDateString(undefined);
 	} else if (days > 0) {
 		return `${days} days ago`;
 	} else if (hours > 0) {

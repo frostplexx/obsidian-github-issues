@@ -16,6 +16,7 @@ import {
 import { Issue } from "./Issues/Issue";
 import { errors } from "./Messages/Errors";
 import { parseIssuesToEmbed } from "./Issues/Issues.shared";
+import { reRenderView } from "./Utils/Utils";
 
 //enum for the appearance of the issues when pasted into the editor
 export enum IssueAppearance {
@@ -338,7 +339,9 @@ class GithubIssuesSettings extends PluginSettingTab {
 						console.log("Appearance: " + value);
 						this.plugin.settings.issue_appearance = value;
 						await this.plugin.saveSettings();
-						//TODO trigger a rerender of the issues
+
+						reRenderView(this.app);
+
 					}),
 			);
 		new Setting(containerEl)
@@ -351,7 +354,8 @@ class GithubIssuesSettings extends PluginSettingTab {
 						console.log("Show Searchbar: " + value);
 						this.plugin.settings.show_searchbar = value;
 						await this.plugin.saveSettings();
-						//TODO trigger a rerender of the issues
+
+						reRenderView(this.app);
 					}),
 			);
 	}
