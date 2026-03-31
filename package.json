@@ -23,6 +23,6 @@
 	},
 	"dependencies": {
 		"@octokit/core": "^4.2.1",
-		"@octokit/types": "^9.2.3"
+		"@octokit/types": "^16.0.0"
 	}
 }
